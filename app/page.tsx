@@ -1,23 +1,28 @@
-"use client";
-import dynamic from "next/dynamic";
-
-// Since client components get prerenderd on server as well hence importing
-// the excalidraw stuff dynamically with ssr false
-
-const ExcalidrawWrapper = dynamic(
-  async () => (await import("../components/ExcelidrawWrapper")).default,
-  {
-    ssr: false,
-  }
-);
+import FeaturesSection from "@/components/landing-page/features-section";
+import { Navbar } from "@/components/navbar";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function Page() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl font-bold mb-4">.letslearn</h1>
-      <div className="h-3/4 w-3/4 border-2 rounded-sm p-1">
-        <ExcalidrawWrapper />
+    <>
+      <Navbar />
+      <div className="max-w-screen-md mx-auto text-center font-bold p-4">
+        <h1>
+          <span className="text-transparent text-4xl md:text-7xl px-2 bg-gradient-to-r from-[#D247BF] to-primary bg-clip-text">
+            Tutora
+          </span>
+          <p className="text-3xl md:text-6xl">Simplify online lessons</p>
+        </h1>
       </div>
-    </div>
+
+      <div className="flex justify-center items-center p-2">
+        <Button asChild variant="secondary" size="lg" className="text-xl">
+          <Link href="/log-in">Get started</Link>
+        </Button>
+      </div>
+
+      <FeaturesSection />
+    </>
   );
 }
