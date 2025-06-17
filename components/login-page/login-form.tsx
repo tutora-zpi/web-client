@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
 
 export function LoginForm() {
   return (
@@ -19,11 +20,10 @@ export function LoginForm() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3">
-            <Button variant="outline" className="w-full ">
-              Login with Google
-            </Button>
-            <Button variant="outline" className="w-full">
-              Login with Linkedin
+            <Button asChild variant="secondary">
+              <Link href="http://localhost:8080/oauth2/authorization/google">
+                Google
+              </Link>
             </Button>
           </div>
         </CardContent>

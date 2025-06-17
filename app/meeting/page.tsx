@@ -1,5 +1,4 @@
 "use client";
-import { Navbar } from "@/components/navbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +15,6 @@ const ExcalidrawWrapper = dynamic(
 export default function Page() {
   return (
     <>
-      <Navbar />
       <div className="flex justify-center items-center">
         <h2>Meeting #2</h2>
       </div>

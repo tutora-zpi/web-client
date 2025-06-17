@@ -1,12 +1,10 @@
 import FeaturesSection from "@/components/landing-page/features-section";
-import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function Page() {
   return (
     <>
-      <Navbar />
       <div className="max-w-screen-md mx-auto text-center font-bold p-4">
         <h1>
           <span className="text-transparent text-4xl md:text-7xl px-2 bg-gradient-to-r from-[#D247BF] to-primary bg-clip-text">
@@ -18,7 +16,7 @@ export default function Page() {
 
       <div className="flex justify-center items-center p-2">
         <Button asChild variant="secondary" size="lg" className="text-xl">
-          <Link href="/log-in">Get started</Link>
+          <Link href="/login">Get started</Link>
         </Button>
       </div>
 
