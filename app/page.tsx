@@ -1,3 +1,4 @@
+import Footer from "@/components/footer";
 import FeaturesSection from "@/components/landing-page/features-section";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,9 @@ export default function Page() {
         </Button>
       </div>
 
+
       <FeaturesSection />
+      <Footer />
     </>
   );
 }

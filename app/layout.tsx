@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { tutoraInfo } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: ".tutora",
-  description: "Simplify online lessons with .tutora",
+  title: tutoraInfo.name,
+  description: tutoraInfo.description,
 };
 
 export default function RootLayout({

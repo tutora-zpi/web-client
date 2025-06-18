@@ -3,6 +3,7 @@ import Link from "next/link";
 import ThemeModeToggle from "./theme-mode-toggle";
 import { getUser } from "@/lib/auth";
 import { LogoutButton } from "./logout-button";
+import { tutoraInfo } from "@/lib/config";
 
 export async function Navbar() {
   const user = await getUser();
@@ -11,7 +12,7 @@ export async function Navbar() {
     <div className="p-4 flex justify-between items-center border-b-2">
       <div className="flex justify-center items-center gap-2">
         <Link href="/" className="text-xl font-bold">
-          .tutora
+          {tutoraInfo.name}
         </Link>
       </div>
       <div className="flex justify-center items-center gap-2">
