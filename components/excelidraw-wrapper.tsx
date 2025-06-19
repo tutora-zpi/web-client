@@ -3,8 +3,14 @@ import { Excalidraw } from "@excalidraw/excalidraw";
 import { io, Socket } from "socket.io-client";
 import "@excalidraw/excalidraw/index.css";
 import { useCallback, useEffect, useState, useRef } from "react";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
-import { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
+import {
+  AppState,
+  ExcalidrawImperativeAPI,
+} from "@excalidraw/excalidraw/types";
+import {
+  OrderedExcalidrawElement,
+  Theme,
+} from "@excalidraw/excalidraw/element/types";
 
 const sessionId = "abc123";
 
@@ -12,12 +18,15 @@ const ExcalidrawWrapper = () => {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
 
+  const [theme, setTheme] = useState<Theme | undefined>();
+
   const socketRef = useRef<Socket | null>(null);
   const elementsRef = useRef<readonly OrderedExcalidrawElement[] | null>(null);
+  const appStateRef = useRef<AppState | null>(null);
   const isUpdatingFromSocketRef = useRef(false);
 
   const handleChange = useCallback(
-    (elements: readonly OrderedExcalidrawElement[]) => {
+    (elements: readonly OrderedExcalidrawElement[], appState: AppState) => {
       if (!excalidrawAPI || !socketRef.current) return;
 
       if (isUpdatingFromSocketRef.current) {
@@ -25,24 +34,29 @@ const ExcalidrawWrapper = () => {
       }
 
       elementsRef.current = elements;
+      appStateRef.current = appState;
+
+      const theme = window.localStorage.getItem("theme") as Theme | undefined;
+      setTheme(theme ?? "light");
     },
     [excalidrawAPI]
   );
 
   useEffect(() => {
     const handlePointerUp = () => {
-      if (!elementsRef.current || !socketRef.current) return;
-
-      console.log("🖱️ Pointer up – sending board update");
+      if (!elementsRef.current || !appStateRef.current || !socketRef.current)
+        return;
 
       socketRef.current.emit("board:update", {
         sessionId,
         data: {
           elements: elementsRef.current,
+          appStateRef: appStateRef.current,
         },
       });
 
       elementsRef.current = null;
+      appStateRef.current = null;
     };
 
     document.addEventListener("pointerup", handlePointerUp);
@@ -65,11 +79,14 @@ const ExcalidrawWrapper = () => {
     });
 
     socket.on("board:sync", (payload) => {
-      const { elements } = payload.data ?? payload;
+      const { elements, appState } = payload.data ?? payload;
 
       try {
         isUpdatingFromSocketRef.current = true;
-        excalidrawAPI.updateScene({ elements: elements ?? [] });
+        excalidrawAPI.updateScene({
+          elements: elements ?? [],
+          appState: appState ?? {},
+        });
 
         setTimeout(() => {
           isUpdatingFromSocketRef.current = false;
@@ -93,7 +110,7 @@ const ExcalidrawWrapper = () => {
     };
   }, [excalidrawAPI]);
 
-  // cleanup
+  //cleanup
   useEffect(() => {
     return () => {
       if (socketRef.current) {
@@ -104,7 +121,11 @@ const ExcalidrawWrapper = () => {
   }, []);
 
   return (
-    <Excalidraw excalidrawAPI={setExcalidrawAPI} onChange={handleChange} />
+    <Excalidraw
+      excalidrawAPI={setExcalidrawAPI}
+      onChange={handleChange}
+      theme={theme}
+    />
   );
 };
 
