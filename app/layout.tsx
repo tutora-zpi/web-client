@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { tutoraInfo } from "@/lib/config";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: tutoraInfo.name,
@@ -24,6 +25,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

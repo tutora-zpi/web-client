@@ -3,7 +3,7 @@ import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
-import { Mic } from "lucide-react";
+import { Copy, Mic } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 
@@ -20,13 +20,11 @@ const ExcalidrawWrapper = dynamic(
 );
 
 export default function Page() {
-  const { user, token, loading } = useAuth();
+  const { user, token } = useAuth();
   const params = useParams();
   const slug = params.slug;
   const [chatData, setChatData] = useState<ChatData | null>(null);
   const [newMessage, setNewMessage] = useState("");
-
-  const userId = user?.id ?? "";
 
   useEffect(() => {
     fetch(`http://localhost:3001/api/v1/chats/${slug}`, {
@@ -43,7 +41,7 @@ export default function Page() {
   }, [slug, token]);
 
   const { messages, sendMessage } = useChat(
-    userId,
+    user?.id ?? "",
     token ?? "",
     slug as string
   );
@@ -57,10 +55,17 @@ export default function Page() {
     setNewMessage("");
   };
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(window.location.toString());
+  };
+
   return (
     <>
-      <div className="flex justify-center items-center mt-2">
-        <h2>Meeting #2</h2>
+      <div className="flex justify-center items-center mt-2 gap-2">
+        <h2>Meeting</h2>
+        <Button onClick={copyToClipboard} size="icon" variant="ghost">
+          <Copy />
+        </Button>
       </div>
       <div className="flex md:flex-row md:justify-between flex-col justify-center items-center mt-2">
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
@@ -71,7 +76,7 @@ export default function Page() {
           </Suspense>
           <div className="flex justify-between items-center mt-2">
             <Button asChild variant="secondary">
-              <Link href="/dashboard">End Lesson</Link>
+              <Link href="/dashboard">Back to dashboard</Link>
             </Button>
             <Button variant="secondary" size="icon">
               <Mic />
@@ -82,10 +87,10 @@ export default function Page() {
           <h2 className="text-center">Chat</h2>
           <div className="overflow-y-auto h-80 border p-2 rounded">
             {allMessages.length > 0 ? (
-              allMessages.map((message, index) => (
-                <div key={index} className="mb-1">
+              allMessages.map((message) => (
+                <div key={message.id} className="mb-1">
                   <strong>
-                    {message.sender == user?.id ? "You" : "Them"}:
+                    {message.sender === user?.id ? `You` : `Guest`}:
                   </strong>{" "}
                   {message.content}
                 </div>
@@ -101,13 +106,6 @@ export default function Page() {
               onChange={(e) => setNewMessage(e.target.value)}
             />
             <Button onClick={handleSend}>Send message</Button>
-            <div className="flex justify-center items-center">
-              {!loading && user && (
-                <span className="text-sm font-medium hidden md:inline">
-                  Joined as {user.email.split("@")[0]}
-                </span>
-              )}
-            </div>
           </div>
         </div>
       </div>

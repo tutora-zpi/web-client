@@ -1,3 +1,13 @@
+export interface Meeting {
+  message: string;
+  data: MeetingData;
+}
+
+export interface MeetingData {
+  meetingID: string;
+  members: UserMeetingMember[];
+}
+
 export interface UserMeetingMember {
   id: string;
   firstName: string;
