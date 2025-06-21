@@ -6,7 +6,7 @@ interface User {
   email: string;
 }
 
-export async function getUser(): Promise<User | null> {
+export async function getUser(): Promise<(User & { token: string }) | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -20,15 +20,14 @@ export async function getUser(): Promise<User | null> {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      cache: "no-store",
-      next: { revalidate: 0 },
     });
 
     if (!response.ok) {
       return null;
     }
 
-    return await response.json();
+    const user = await response.json();
+    return { ...user, token };
   } catch (error) {
     console.error("Error fetching user:", error);
     return null;

@@ -11,10 +11,9 @@ import {
   OrderedExcalidrawElement,
   Theme,
 } from "@excalidraw/excalidraw/element/types";
+import { ParamValue } from "next/dist/server/request/params";
 
-const sessionId = "abc123";
-
-const ExcalidrawWrapper = () => {
+const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
 

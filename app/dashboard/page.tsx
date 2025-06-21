@@ -1,10 +1,9 @@
 import { Navbar } from "@/components/navbar";
-import { Button } from "@/components/ui/button";
+import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
 
 export default async function Dashboard() {
   const user = await requireAuth();
-
   return (
     <>
       <Navbar />
@@ -14,7 +13,7 @@ export default async function Dashboard() {
       </div>
 
       <div>
-        <Button>Start meeting</Button>
+        <StartMeetingButton />
       </div>
     </>
   );

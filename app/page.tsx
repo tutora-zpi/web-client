@@ -23,7 +23,6 @@ export default function Page() {
         </Button>
       </div>
 
-
       <FeaturesSection />
       <Footer />
     </>

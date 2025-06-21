@@ -16,9 +16,6 @@ export async function Navbar() {
         </Link>
       </div>
       <div className="flex justify-center items-center gap-2">
-        <Button asChild variant="secondary">
-          <Link href="/meeting">Canva</Link>
-        </Button>
         {user ? (
           <>
             <Button asChild variant="secondary">
