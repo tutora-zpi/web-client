@@ -1,7 +1,6 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { Copy, Mic } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -11,6 +10,7 @@ import Loading from "./loading";
 import { useParams } from "next/navigation";
 import { ChatData } from "@/types/meeting";
 import { useChat } from "@/hooks/useChat";
+import { Input } from "@/components/ui/input";
 
 const ExcalidrawWrapper = dynamic(
   async () => (await import("../../../components/excelidraw-wrapper")).default,
@@ -99,14 +99,21 @@ export default function Page() {
               <p className="text-center">No messages yet.</p>
             )}
           </div>
-          <div className="grid w-full gap-2 mt-2">
-            <Textarea
-              placeholder="Type your message here."
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="flex flex-col w-full gap-2 h-f"
+          >
+            <Input
+              placeholder="type here."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
             />
-            <Button onClick={handleSend}>Send message</Button>
-          </div>
+            <Button type="submit">Send message</Button>
+          </form>
         </div>
       </div>
     </>
