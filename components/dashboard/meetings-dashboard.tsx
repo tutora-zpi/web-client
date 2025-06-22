@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Meeting, UserMeetingMember } from "@/types/meeting";
+import { Meeting, MeetingMember } from "@/types/meeting";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "../ui/button";
 import { Trash } from "lucide-react";
@@ -55,7 +55,7 @@ const MeetingCard = ({
   onDelete,
 }: {
   id: string;
-  members: UserMeetingMember[];
+  members: MeetingMember[];
   onDelete: () => void;
 }) => {
   return (

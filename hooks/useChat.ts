@@ -14,17 +14,10 @@ export function useChat(userId: string, token: string, meetingID: string) {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("Connected:", socket.id);
-
       socket.emit("joinRoom", { roomId: meetingID });
-
-      console.log("Joined room:", meetingID);
     });
 
-    socket.on("disconnect", () => console.log("Disconnected"));
-
     socket.on("message", (msg: ReceivedChatMessage) => {
-      console.log("Received message from socket:", msg);
       setMessages((prev) => [...prev, msg]);
     });
 
@@ -41,7 +34,6 @@ export function useChat(userId: string, token: string, meetingID: string) {
       senderID: userId,
     };
     socketRef.current?.emit("sendMessage", message);
-    console.log("Message sent:", message);
   };
 
   return { messages, sendMessage };

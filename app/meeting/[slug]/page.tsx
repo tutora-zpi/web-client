@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Copy, Mic } from "lucide-react";
+import { AudioLines, Copy, Mic, MicOff, Volume2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 
@@ -11,6 +11,8 @@ import { useParams } from "next/navigation";
 import { ChatData } from "@/types/meeting";
 import { useChat } from "@/hooks/useChat";
 import { Input } from "@/components/ui/input";
+import { useVoiceCall } from "@/hooks/useVoiceCall";
+import ThemeModeToggle from "@/components/theme-mode-toggle";
 
 const ExcalidrawWrapper = dynamic(
   async () => (await import("../../../components/excelidraw-wrapper")).default,
@@ -22,12 +24,13 @@ const ExcalidrawWrapper = dynamic(
 export default function Page() {
   const { user, token } = useAuth();
   const params = useParams();
-  const slug = params.slug;
+  const meetingId = params.slug as string;
   const [chatData, setChatData] = useState<ChatData | null>(null);
   const [newMessage, setNewMessage] = useState("");
+  const [hasJoined, setHasJoined] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/v1/chats/${slug}`, {
+    fetch(`http://localhost:3001/api/v1/chats/${meetingId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -38,13 +41,23 @@ export default function Page() {
       .then((data) => {
         setChatData(data);
       });
-  }, [slug, token]);
+  }, [meetingId, token]);
 
   const { messages, sendMessage } = useChat(
     user?.id ?? "",
     token ?? "",
-    slug as string
+    meetingId
   );
+
+  const {
+    isConnected,
+    isCallActive,
+    isMuted,
+    participants,
+    startCall,
+    endCall,
+    toggleMute,
+  } = useVoiceCall({ roomId: meetingId });
 
   const allMessages = [...(chatData?.messages ?? []), ...messages];
 
@@ -55,37 +68,78 @@ export default function Page() {
     setNewMessage("");
   };
 
+  const handleJoinCall = async () => {
+    setHasJoined(true);
+    await startCall();
+  };
+
+  const handleLeaveCall = () => {
+    endCall();
+    setHasJoined(false);
+  };
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(window.location.toString());
   };
 
   return (
     <>
-      <div className="flex justify-center items-center mt-2 gap-2">
-        <h2>Meeting</h2>
-        <Button onClick={copyToClipboard} size="icon" variant="ghost">
-          <Copy />
-        </Button>
+      <div className="flex justify-between items-center m-2">
+        <div className="flex justify-center items-center gap-2">
+          <h2>Meeting</h2>
+          <Button onClick={copyToClipboard} size="icon" variant="ghost">
+            <Copy />
+          </Button>
+        </div>
+        <ThemeModeToggle />
       </div>
       <div className="flex md:flex-row md:justify-between flex-col justify-center items-center mt-2">
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
           <Suspense fallback={<Loading />}>
             <div className="h-130">
-              <ExcalidrawWrapper sessionId={slug} />
+              <ExcalidrawWrapper sessionId={meetingId} />
             </div>
           </Suspense>
           <div className="flex justify-between items-center mt-2">
             <Button asChild variant="secondary">
               <Link href="/dashboard">Back to dashboard</Link>
             </Button>
-            <Button variant="secondary" size="icon">
-              <Mic />
-            </Button>
+            <div className="flex justify-center items-center gap-2">
+              {isConnected && (
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              )}
+
+              {isCallActive && (
+                <div className="text-sm text-gray-400">
+                  Call participants: {participants.length + 1}
+                </div>
+              )}
+            </div>
+            <div className="flex justify-center items-center gap-2">
+              {!hasJoined ? (
+                <Button variant="secondary" onClick={handleJoinCall}>
+                  <AudioLines /> Join with voice
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={handleLeaveCall}
+                  >
+                    <Volume2 />
+                  </Button>
+                  <Button variant="secondary" size="icon" onClick={toggleMute}>
+                    {isMuted ? <MicOff /> : <Mic />}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
         <div className="w-4/5 md:w-1/4 flex flex-col m-2 h-140 justify-between">
           <h2 className="text-center">Chat</h2>
-          <div className="overflow-y-auto h-80 border p-2 rounded">
+          <div className="overflow-y-auto h-100 border p-2 rounded">
             {allMessages.length > 0 ? (
               allMessages.map((message) => (
                 <div key={message.id} className="mb-1">

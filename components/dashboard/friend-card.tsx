@@ -1,11 +1,11 @@
-import { UserMeetingMember } from "@/types/meeting";
+import { MeetingMember } from "@/types/meeting";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StartMeetingButton } from "../start-meeting-button";
 
 export function FriendCard({
   friend,
   user,
-}: Readonly<{ friend: UserMeetingMember; user: UserMeetingMember }>) {
+}: Readonly<{ friend: MeetingMember; user: MeetingMember }>) {
   return (
     <div className="flex  flex-col border-2 rounded-xl px-10 py-2 mt-2">
       <div className="flex items-center justify-center flex-col">

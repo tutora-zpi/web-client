@@ -5,10 +5,10 @@ export interface Meeting {
 
 export interface MeetingData {
   meetingID: string;
-  members: UserMeetingMember[];
+  members: MeetingMember[];
 }
 
-export interface UserMeetingMember {
+export interface MeetingMember {
   id: string;
   firstName: string;
   lastName: string;
@@ -16,12 +16,12 @@ export interface UserMeetingMember {
 }
 
 export interface StartMeetingDTO {
-  members: UserMeetingMember[];
+  members: MeetingMember[];
 }
 
 export interface ChatData {
   id: string;
-  members: UserMeetingMember[];
+  members: MeetingMember[];
   messages: ReceivedChatMessage[];
 }
 
@@ -33,11 +33,17 @@ export interface SentChatMessage {
 }
 
 export interface ReceivedChatMessage {
+  id: string;
   chatID: string;
   content: string;
-  id: string;
   isRead: boolean;
   receiver: string;
   sender: string;
   sentAt: Date;
+}
+
+export interface PeerConnection {
+  id: string;
+  connection: RTCPeerConnection;
+  stream?: MediaStream;
 }

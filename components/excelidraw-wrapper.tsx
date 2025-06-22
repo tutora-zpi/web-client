@@ -73,7 +73,6 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
     const socket = socketRef.current;
 
     socket.on("connect", () => {
-      console.log("🟢 Connected:", socket.id);
       socket.emit("join-session", { sessionId });
     });
 
@@ -95,11 +94,6 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
         isUpdatingFromSocketRef.current = false;
       }
     });
-
-    socket.on("disconnect", () => console.log("🔴 Disconnected"));
-    socket.on("connect_error", (err) =>
-      console.error("❌ Connection error:", err)
-    );
 
     return () => {
       socket.off("connect");

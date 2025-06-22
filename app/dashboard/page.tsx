@@ -2,9 +2,9 @@ import { FriendCard } from "@/components/dashboard/friend-card";
 import MeetingsDashboard from "@/components/dashboard/meetings-dashboard";
 import { Navbar } from "@/components/navbar";
 import { requireAuth } from "@/lib/auth";
-import { UserMeetingMember } from "@/types/meeting";
+import { MeetingMember } from "@/types/meeting";
 
-const friendsList: UserMeetingMember[] = [
+const friendsList: MeetingMember[] = [
   {
     id: "dd423675-fee6-496b-81ae-95d027bb99a4",
     firstName: "Jan",
@@ -23,11 +23,11 @@ export default async function Dashboard() {
   const user = await requireAuth();
 
   const availableFriends = friendsList.filter(
-    (friend: UserMeetingMember) => friend.id !== user.id
+    (friend: MeetingMember) => friend.id !== user.id
   );
 
   const meetingUser = friendsList.find(
-    (meetingUser: UserMeetingMember) => meetingUser.id === user.id
+    (meetingUser: MeetingMember) => meetingUser.id === user.id
   );
 
   return (

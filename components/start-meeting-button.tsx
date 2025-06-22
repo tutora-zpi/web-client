@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { StartMeetingDTO, UserMeetingMember } from "@/types/meeting";
+import { StartMeetingDTO, MeetingMember } from "@/types/meeting";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export function StartMeetingButton({
   friend,
   user,
-}: Readonly<{ friend: UserMeetingMember; user: UserMeetingMember }>) {
+}: Readonly<{ friend: MeetingMember; user: MeetingMember }>) {
   const router = useRouter();
 
   const authUser = useAuth();
@@ -48,7 +48,6 @@ export function StartMeetingButton({
 
       if (res.ok) {
         const data = await res.json();
-        console.log("Meeting started:", data);
 
         const existing = localStorage.getItem("meetingsHistory");
         const meetings = existing ? JSON.parse(existing) : [];
@@ -62,12 +61,15 @@ export function StartMeetingButton({
 
         router.push(`/meeting/${data.data.meetingID}`);
       } else {
-        const err = await res.json();
-        alert("Błąd: " + err.error);
+        const error = await res.json();
+        toast("Error!", {
+          description: error,
+        });
       }
     } catch (error) {
-      console.error("Error starting meeting:", error);
-      alert("Wystąpił błąd podczas tworzenia meetingu");
+      toast("Error starting meeting!", {
+        description: error as string,
+      });
     } finally {
       setIsLoading(false);
     }
