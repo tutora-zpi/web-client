@@ -21,7 +21,9 @@ export function LoginForm() {
         <CardContent>
           <div className="flex flex-col gap-3">
             <Button asChild variant="secondary">
-              <Link href="http://localhost:8080/oauth2/authorization/google">
+              <Link
+                href={`${process.env.NEXT_PUBLIC_USER_SERVICE}/oauth2/authorization/google`}
+              >
                 Google
               </Link>
             </Button>

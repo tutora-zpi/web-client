@@ -10,7 +10,10 @@ import { toast } from "sonner";
 export function StartMeetingButton({
   friend,
   user,
-}: Readonly<{ friend: MeetingMember; user: MeetingMember }>) {
+}: {
+  friend: MeetingMember;
+  user: MeetingMember;
+}) {
   const router = useRouter();
 
   const authUser = useAuth();
@@ -37,14 +40,17 @@ export function StartMeetingButton({
   const startMeeting = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:8003/api/v1/meeting/start", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${authUser.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_MEETING_SCHEDULER_SERVICE}/api/v1/meeting/start`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${authUser.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
 
       if (res.ok) {
         const data = await res.json();

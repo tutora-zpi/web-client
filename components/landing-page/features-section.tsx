@@ -4,6 +4,7 @@ interface FeatureProps {
   title: string;
   description: string;
 }
+
 const featureList: FeatureProps[] = [
   {
     title: "Live collaboration",
@@ -29,7 +30,7 @@ const featureList: FeatureProps[] = [
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="container px-24 py-10">
+    <section className="container px-24 py-10">
       <div className="grid lg:grid-cols-2 place-items-center lg:gap-24">
         <div>
           <h2 className="text-lg text-primary mb-2 tracking-wider">Features</h2>

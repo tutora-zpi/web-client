@@ -6,13 +6,13 @@ import { MeetingMember } from "@/types/meeting";
 
 const friendsList: MeetingMember[] = [
   {
-    id: "dd423675-fee6-496b-81ae-95d027bb99a4",
+    id: "a2fc315c-326b-4bd0-aae4-ca932f9c3874",
     firstName: "Jan",
     lastName: "Kowalski",
     avatarURL: "https://robohash.org/avatar",
   },
   {
-    id: "a4c81a3e-2804-483f-be2d-7f0ae96be66c",
+    id: "8e9ef623-5f27-4557-8ad6-6cf511351a15",
     firstName: "Michał",
     lastName: "Nowak",
     avatarURL: "https://robohash.org/avatar2",
@@ -40,7 +40,6 @@ export default async function Dashboard() {
             <FriendCard key={friend.id} user={meetingUser!} friend={friend} />
           ))}
         </div>
-
         <MeetingsDashboard />
       </div>
     </>

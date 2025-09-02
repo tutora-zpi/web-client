@@ -20,14 +20,19 @@ export interface StartMeetingDTO {
 }
 
 export interface ChatData {
+  data: ChatMessage[];
+}
+
+export interface ChatMessage {
   id: string;
-  members: MeetingMember[];
-  messages: ReceivedChatMessage[];
+  sender: string;
+  content: string;
+  reactions: string[];
+  sentAt: Date;
 }
 
 export interface SentChatMessage {
   senderID: string;
-  receiverID: string;
   meetingID: string;
   content: string;
 }
