@@ -9,7 +9,8 @@
 
 - `/meeting/:id` – spotkanie  
 
-- `/room/:id` – pokój/klasa  
+- `/room/:id` – pokój/klasa
+- `login` – strona logowania  
 
 ## Getting Started
 
