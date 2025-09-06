@@ -28,6 +28,7 @@ export interface ChatMessage {
   sender: string;
   content: string;
   reactions: string[];
+  answers: string[];
   sentAt: Date;
 }
 
@@ -35,16 +36,6 @@ export interface SentChatMessage {
   senderID: string;
   meetingID: string;
   content: string;
-}
-
-export interface ReceivedChatMessage {
-  id: string;
-  chatID: string;
-  content: string;
-  isRead: boolean;
-  receiver: string;
-  sender: string;
-  sentAt: Date;
 }
 
 export interface PeerConnection {

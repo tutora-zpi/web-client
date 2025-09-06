@@ -5,7 +5,6 @@ export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
 
   const fetchUser = async () => {
     try {
@@ -17,17 +16,14 @@ export function useAuth(): UseAuthReturn {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        setToken(data.token);
       } else if (response.status === 401) {
         setUser(null);
-        setToken(null);
       } else {
         throw new Error("Failed to fetch user");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
       setUser(null);
-      setToken(null);
     } finally {
       setLoading(false);
     }
@@ -37,5 +33,5 @@ export function useAuth(): UseAuthReturn {
     fetchUser();
   }, []);
 
-  return { user, token, loading, error, refetch: fetchUser };
+  return { user, loading, error, refetch: fetchUser };
 }

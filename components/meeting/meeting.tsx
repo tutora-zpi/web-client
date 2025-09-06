@@ -1,74 +1,35 @@
-"use client";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import { AudioLines, Copy, Mic, MicOff, Volume2 } from "lucide-react";
-import dynamic from "next/dynamic";
+import { Copy } from "lucide-react";
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
 import ThemeModeToggle from "@/components/theme-mode-toggle";
-import { Input } from "@/components/ui/input";
-import { useChat } from "@/hooks/useChat";
-import { useVoiceCall } from "@/hooks/useVoiceCall";
 import { ChatMessage } from "@/types/meeting";
-import Loading from "@/app/meeting/[slug]/loading";
+import Chat from "./chat";
+import Board from "./board";
+import VoiceConnection from "./voice-connection";
+import { cookies } from "next/headers";
+import { User } from "@/types/user";
 
-const ExcalidrawWrapper = dynamic(
-  async () => (await import("../excelidraw-wrapper")).default,
-  {
-    ssr: false,
-  }
-);
-
-export default function Meeting({ meetingId }: { meetingId: string }) {
-  const { user, token } = useAuth();
-  const [chatData, setChatData] = useState<ChatMessage[] | null>(null);
-  const [newMessage, setNewMessage] = useState("");
-  const [hasJoined, setHasJoined] = useState(false);
-
-  useEffect(() => {
-    fetch(`/api/chats/${meetingId}`)
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setChatData(data.data);
-      });
-  }, [meetingId, token]);
-
-  const { messages, sendMessage } = useChat(
-    user?.id ?? "",
-    token ?? "",
-    meetingId
+const getChatMessages = async (meetingId: string): Promise<ChatMessage[]> => {
+  const data = await fetch(
+    `${process.env.NEXT_PUBLIC_NEXT_JS_API_URL + "/auth/me"}/chats/${meetingId}`
   );
+  const chatData = await data.json();
+  return chatData.data;
+};
 
-  const {
-    isConnected,
-    isCallActive,
-    isMuted,
-    participants,
-    startCall,
-    endCall,
-    toggleMute,
-  } = useVoiceCall({ roomId: meetingId });
+export const getUser = async (): Promise<User> => {
+  const data = await fetch(
+    `${process.env.NEXT_PUBLIC_NEXT_JS_API_URL}/auth/me`
+  );
+  const user = await data.json();
+  return user;
+};
 
-  const allMessages = [...(chatData ?? []), ...messages];
-
-  const handleSend = () => {
-    if (!newMessage.trim() || !user?.id) return;
-
-    sendMessage(newMessage);
-    setNewMessage("");
-  };
-
-  const handleJoinCall = async () => {
-    setHasJoined(true);
-    await startCall();
-  };
-
-  const handleLeaveCall = () => {
-    endCall();
-    setHasJoined(false);
-  };
+export default async function Meeting({ meetingId }: { meetingId: string }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value ?? "";
+  const user = await getUser();
+  const chatData = await getChatMessages(meetingId);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(window.location.toString());
@@ -87,79 +48,21 @@ export default function Meeting({ meetingId }: { meetingId: string }) {
       </div>
       <div className="flex md:flex-row md:justify-between flex-col justify-center items-center mt-2">
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
-          <Suspense fallback={<Loading />}>
-            <div className="h-130">
-              <ExcalidrawWrapper sessionId={meetingId} />
-            </div>
-          </Suspense>
+          <Board meetingId={meetingId} />
           <div className="flex justify-between items-center mt-2">
             <Button asChild variant="secondary">
               <Link href="/dashboard">Back to dashboard</Link>
             </Button>
-            <div className="flex justify-center items-center gap-2">
-              {isConnected && (
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              )}
-
-              {isCallActive && (
-                <div className="text-sm text-gray-400">
-                  Call participants: {participants.length + 1}
-                </div>
-              )}
-            </div>
-            <div className="flex justify-center items-center gap-2">
-              {!hasJoined ? (
-                <Button variant="secondary" onClick={handleJoinCall}>
-                  <AudioLines /> Join with voice
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={handleLeaveCall}
-                  >
-                    <Volume2 />
-                  </Button>
-                  <Button variant="secondary" size="icon" onClick={toggleMute}>
-                    {isMuted ? <MicOff /> : <Mic />}
-                  </Button>
-                </>
-              )}
-            </div>
+            <VoiceConnection meetingId={meetingId} />
           </div>
         </div>
         <div className="w-4/5 md:w-1/4 flex flex-col m-2 h-140 justify-between">
-          <h2 className="text-center">Chat</h2>
-          <div className="overflow-y-auto h-100 border p-2 rounded">
-            {allMessages.length > 0 ? (
-              allMessages.map((message) => (
-                <div key={message.id} className="mb-1">
-                  <strong>
-                    {message.sender === user?.id ? `You` : `Guest`}:
-                  </strong>{" "}
-                  {message.content}
-                </div>
-              ))
-            ) : (
-              <p className="text-center">No messages yet.</p>
-            )}
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="flex flex-col w-full gap-2 h-f"
-          >
-            <Input
-              placeholder="type here."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-            />
-            <Button type="submit">Send message</Button>
-          </form>
+          <Chat
+            meetingId={meetingId}
+            userId={user?.id}
+            token={token}
+            chatMessages={chatData}
+          />
         </div>
       </div>
     </>

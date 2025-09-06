@@ -2,7 +2,7 @@ import { User } from "@/types/user";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export async function getUser(): Promise<(User & { token: string }) | null> {
+export async function getUser(): Promise<User | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -23,7 +23,7 @@ export async function getUser(): Promise<(User & { token: string }) | null> {
     }
 
     const user: User = await response.json();
-    return { ...user, token };
+    return user;
   } catch (error) {
     console.error("Error fetching user:", error);
     return null;
