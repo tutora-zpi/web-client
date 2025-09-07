@@ -1,26 +1,25 @@
 import { cookies } from "next/headers";
-import type { NextRequest } from "next/server";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export async function POST(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  const body = await request.json();
+
+  console.log("Token from cookies:", token);
+
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${id}/messages`,
+    `${process.env.NEXT_PUBLIC_MEETING_SCHEDULER_SERVICE}/api/v1/meeting/start`,
     {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(body),
     }
   );
 
-  if (!response.ok) {
-    return new Response("Failed to fetch messages", { status: 500 });
-  }
   const data = await response.json();
   return new Response(JSON.stringify(data), { status: 200 });
 }

@@ -2,14 +2,14 @@ import { cookies } from "next/headers";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { query: string } }
 ) {
-  const { id } = params;
+  const { query } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${id}/messages`,
+    `${process.env.NEXT_PUBLIC_USER_SERVICE}/users/search?query=${query}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -17,9 +17,6 @@ export async function GET(
     }
   );
 
-  if (!response.ok) {
-    return new Response("Failed to fetch messages", { status: 500 });
-  }
   const data = await response.json();
   return new Response(JSON.stringify(data), { status: 200 });
 }

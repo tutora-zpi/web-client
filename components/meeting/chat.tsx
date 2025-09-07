@@ -37,15 +37,16 @@ export default function Chat({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     sendMessage(values.message);
+    form.reset();
   }
 
   return (
-    <div>
+    <div className="flex flex-col h-full justify-between">
       <h2 className="text-center">Chat</h2>
       <div className="overflow-y-auto h-100 border p-2 rounded">
         {allMessages.length > 0 ? (
-          allMessages.map((message) => (
-            <div key={message.id} className="mb-1">
+          allMessages.map((message, idx) => (
+            <div key={`${message.sender}-${idx}`} className="mb-1">
               <strong>{message.sender === userId ? `You` : `Guest`}:</strong>{" "}
               {message.content}
             </div>
@@ -55,7 +56,7 @@ export default function Chat({
         )}
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <FormField
             control={form.control}
             name="message"
@@ -67,7 +68,9 @@ export default function Chat({
               </FormItem>
             )}
           />
-          <Button type="submit">Send message</Button>
+          <Button className="w-full" type="submit">
+            Send message
+          </Button>
         </form>
       </Form>
     </div>

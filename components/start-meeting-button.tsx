@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
 import { StartMeetingDTO, MeetingMember } from "@/types/meeting";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -15,8 +14,6 @@ export function StartMeetingButton({
   user: MeetingMember;
 }) {
   const router = useRouter();
-
-  const authUser = useAuth();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,17 +37,10 @@ export function StartMeetingButton({
   const startMeeting = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_MEETING_SCHEDULER_SERVICE}/api/v1/meeting/start`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${authUser.token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const res = await fetch("/api/meeting/start", {
+        method: "POST",
+        body: JSON.stringify(requestBody),
+      });
 
       if (res.ok) {
         const data = await res.json();

@@ -1,3 +1,4 @@
+import { CreateRoomDialog } from "@/components/dashboard/create-room-dialog";
 import { FriendCard } from "@/components/dashboard/friend-card";
 import MeetingsDashboard from "@/components/dashboard/meetings-dashboard";
 import { Navbar } from "@/components/navbar";
@@ -40,6 +41,7 @@ export default async function Dashboard() {
             <FriendCard key={friend.id} user={meetingUser!} friend={friend} />
           ))}
         </div>
+        <CreateRoomDialog userId={user.id} />
         <MeetingsDashboard />
       </div>
     </>
