@@ -13,20 +13,27 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDebounce } from "@/hooks/useDebounce";
 import { User } from "@/types/user";
 import { useEffect, useState } from "react";
 
 export function CreateRoomDialog({ userId }: { userId: string }) {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm);
 
   useEffect(() => {
-    fetch(`api/users/search/${searchTerm}`)
+    if (debouncedSearch.length < 2) {
+      setUsers([]);
+      return;
+    }
+
+    fetch(`api/users/search/${debouncedSearch}`)
       .then((res) => res.json())
       .then((data) => {
         setUsers(data.content.filter((user: User) => user.id !== userId));
       });
-  }, [searchTerm, userId]);
+  }, [debouncedSearch, userId]);
 
   return (
     <Dialog>
