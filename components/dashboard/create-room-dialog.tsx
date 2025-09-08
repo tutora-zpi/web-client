@@ -15,9 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDebounce } from "@/hooks/useDebounce";
 import { User } from "@/types/user";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useEffect, useState } from "react";
+import { StartMeetingButton } from "../start-meeting-button";
 
-export function CreateRoomDialog({ userId }: { userId: string }) {
+export function CreateRoomDialog({ host }: { host: User }) {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm);
@@ -31,9 +33,9 @@ export function CreateRoomDialog({ userId }: { userId: string }) {
     fetch(`api/users/search/${debouncedSearch}`)
       .then((res) => res.json())
       .then((data) => {
-        setUsers(data.content.filter((user: User) => user.id !== userId));
+        setUsers(data.content.filter((user: User) => user.id !== host.id));
       });
-  }, [debouncedSearch, userId]);
+  }, [debouncedSearch, host]);
 
   return (
     <Dialog>
@@ -62,13 +64,23 @@ export function CreateRoomDialog({ userId }: { userId: string }) {
 
             <div>
               {users.map((user) => (
-                <div key={user.id} className="p-2 border-b last:border-0">
-                  <div className="font-medium">
-                    {user.name} {user.surname}
+                <div key={user.id} className="flex justify-between">
+                  <div className="flex items-center gap-2 ">
+                    <Avatar>
+                      <AvatarImage
+                        className="rounded-full h-10 w-10"
+                        src={user.avatarUrl}
+                      />
+                      <AvatarFallback>CN</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p>
+                        {user.name} {user.surname}
+                      </p>
+                      <p className="text-xs">{user.email}</p>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {user.email}
-                  </div>
+                  <StartMeetingButton friend={user} user={host} />
                 </div>
               ))}
             </div>

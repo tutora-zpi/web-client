@@ -1,7 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { StartMeetingDTO, MeetingMember } from "@/types/meeting";
+import { StartMeetingDTO } from "@/types/meeting";
+import { User } from "@/types/user";
+import { BadgePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,8 +12,8 @@ export function StartMeetingButton({
   friend,
   user,
 }: {
-  friend: MeetingMember;
-  user: MeetingMember;
+  friend: User;
+  user: User;
 }) {
   const router = useRouter();
 
@@ -21,15 +23,15 @@ export function StartMeetingButton({
     members: [
       {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatarURL: user.avatarURL,
+        firstName: user.name,
+        lastName: user.surname,
+        avatarURL: user.avatarUrl,
       },
       {
         id: friend.id,
-        firstName: friend.firstName,
-        lastName: friend.lastName,
-        avatarURL: friend.avatarURL,
+        firstName: friend.name,
+        lastName: friend.surname,
+        avatarURL: friend.avatarUrl,
       },
     ],
   };
@@ -72,9 +74,9 @@ export function StartMeetingButton({
   };
 
   return (
-    <div className="p-2">
+    <div className=" ">
       <Button onClick={startMeeting} disabled={isLoading}>
-        {isLoading ? "Creating meeting..." : "Create meeting"}
+        {isLoading ? "Creating..." : <BadgePlus />}
       </Button>
     </div>
   );
