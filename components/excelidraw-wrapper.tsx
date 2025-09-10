@@ -68,7 +68,7 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
   useEffect(() => {
     if (!excalidrawAPI) return;
 
-    socketRef.current ??= io("http://localhost:3005");
+    socketRef.current = io(process.env.NEXT_PUBLIC_BOARD_SERVICE);
 
     const socket = socketRef.current;
 

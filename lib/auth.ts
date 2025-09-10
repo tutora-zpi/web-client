@@ -1,12 +1,8 @@
+import { User } from "@/types/user";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-interface User {
-  id: string;
-  email: string;
-}
-
-export async function getUser(): Promise<(User & { token: string }) | null> {
+export async function getUser(): Promise<User | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -26,8 +22,8 @@ export async function getUser(): Promise<(User & { token: string }) | null> {
       return null;
     }
 
-    const user = await response.json();
-    return { ...user, token };
+    const user: User = await response.json();
+    return user;
   } catch (error) {
     console.error("Error fetching user:", error);
     return null;
@@ -36,10 +32,8 @@ export async function getUser(): Promise<(User & { token: string }) | null> {
 
 export async function requireAuth(): Promise<User> {
   const user = await getUser();
-
   if (!user) {
     redirect("/login");
   }
-
   return user;
 }

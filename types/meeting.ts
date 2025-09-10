@@ -20,26 +20,22 @@ export interface StartMeetingDTO {
 }
 
 export interface ChatData {
+  data: ChatMessage[];
+}
+
+export interface ChatMessage {
   id: string;
-  members: MeetingMember[];
-  messages: ReceivedChatMessage[];
+  sender: string;
+  content: string;
+  reactions: string[];
+  answers: string[];
+  sentAt: Date;
 }
 
 export interface SentChatMessage {
   senderID: string;
-  receiverID: string;
   meetingID: string;
   content: string;
-}
-
-export interface ReceivedChatMessage {
-  id: string;
-  chatID: string;
-  content: string;
-  isRead: boolean;
-  receiver: string;
-  sender: string;
-  sentAt: Date;
 }
 
 export interface PeerConnection {

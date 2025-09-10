@@ -4,7 +4,7 @@ import { io, Socket } from "socket.io-client";
 
 export const useVoiceCall = ({
   roomId,
-  serverUrl = "http://localhost:3002",
+  serverUrl = process.env.NEXT_PUBLIC_WEB_RTC_SERVICE,
 }: {
   roomId: string;
   serverUrl?: string;
