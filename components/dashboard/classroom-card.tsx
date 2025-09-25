@@ -9,8 +9,8 @@ import {
 } from "../ui/card";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
-import { ClassUser } from "@/types/class";
-import { EllipsisVertical } from "lucide-react";
+import { ClassUser, ClassUserRole } from "@/types/class";
+import { EllipsisVertical, GraduationCap } from "lucide-react";
 
 const getUsers = async (userIds: string[]): Promise<User[]> => {
   const cookieStore = await cookies();
@@ -44,7 +44,12 @@ export async function ClassroomCard({
   name: string;
   classUsers: ClassUser[];
 }) {
-  const users = await getUsers(classUsers.map((user) => user.userId));
+  const host = classUsers.find(
+    (user: ClassUser) => user.role === ClassUserRole.HOST
+  );
+  const users = await getUsers(
+    classUsers.map((user: ClassUser) => user.userId)
+  );
 
   return (
     <Card className="aspect-square flex flex-col justify-between">
@@ -54,8 +59,8 @@ export async function ClassroomCard({
       <CardContent className="flex flex-col ">
         <div className="flex flex-col gap-2 ">
           {users.map((user) => (
-            <div key={user.id} className="text-sm">
-              {" "}
+            <div key={user.id} className="text-sm flex items-center gap-1">
+              {user.id === host?.userId && <GraduationCap />}
               {user.name} {user.surname}{" "}
             </div>
           ))}

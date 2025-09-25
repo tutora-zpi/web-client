@@ -45,7 +45,7 @@ export function CreateRoomButton({ roomName }: { roomName: string }) {
   };
 
   return (
-    <div className=" ">
+    <div>
       <Button onClick={createRoom} disabled={isLoading}>
         {isLoading ? "Creating..." : "Create"}
       </Button>

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { StartMeetingDTO } from "@/types/meeting";
 import { User } from "@/types/user";
-import { BadgePlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -47,12 +47,6 @@ export function StartMeetingButton({
       if (res.ok) {
         const data = await res.json();
 
-        const existing = localStorage.getItem("meetingsHistory");
-        const meetings = existing ? JSON.parse(existing) : [];
-
-        meetings.unshift(data);
-        localStorage.setItem("meetingsHistory", JSON.stringify(meetings));
-
         toast("Meeting started!", {
           description: `We will redirect you shortly!`,
         });
@@ -76,7 +70,7 @@ export function StartMeetingButton({
   return (
     <div className=" ">
       <Button onClick={startMeeting} disabled={isLoading}>
-        {isLoading ? "Creating..." : <BadgePlus />}
+        {isLoading ? "Starting..." : <Plus />}
       </Button>
     </div>
   );
