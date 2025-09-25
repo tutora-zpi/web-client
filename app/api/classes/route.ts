@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const body = await request.json();
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_MEETING_SCHEDULER_SERVICE}/api/v1/meeting/start`,
+    `${process.env.NEXT_PUBLIC_CLASS_SERVICE}/classes`,
     {
       method: "POST",
       headers: {

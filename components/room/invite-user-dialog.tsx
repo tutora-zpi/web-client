@@ -17,9 +17,15 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { User } from "@/types/user";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useEffect, useState } from "react";
-import { StartMeetingButton } from "../start-meeting-button";
+import { InviteUserButton } from "./invite-user-button";
 
-export function CreateRoomDialog({ host }: { host: User }) {
+export function InviteUserDialog({
+  host,
+  classId,
+}: {
+  host: User;
+  classId: string;
+}) {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm);
@@ -30,7 +36,7 @@ export function CreateRoomDialog({ host }: { host: User }) {
       return;
     }
 
-    fetch(`api/users/search/${debouncedSearch}`)
+    fetch(`/api/users/search/${debouncedSearch}`)
       .then((res) => res.json())
       .then((data) => {
         setUsers(data.content.filter((user: User) => user.id !== host.id));
@@ -41,13 +47,13 @@ export function CreateRoomDialog({ host }: { host: User }) {
     <Dialog>
       <form>
         <DialogTrigger asChild>
-          <Button variant="outline">Create Classroom</Button>
+          <Button variant="outline">Invite</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create Classroom</DialogTitle>
+            <DialogTitle>Invite</DialogTitle>
             <DialogDescription>
-              Search through user and create a classroom.
+              Search through users and invite them to the room
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
@@ -80,7 +86,7 @@ export function CreateRoomDialog({ host }: { host: User }) {
                       <p className="text-xs">{user.email}</p>
                     </div>
                   </div>
-                  <StartMeetingButton friend={user} user={host} />
+                  <InviteUserButton userId={user.id} classId={classId} />
                 </div>
               ))}
             </div>
