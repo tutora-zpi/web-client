@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   const { pathname } = request.nextUrl;
 
-  const protectedPaths = ["/dashboard", "/meeting"];
+  const protectedPaths = ["/dashboard", "/meeting", "/room"];
   const isProtectedPath = protectedPaths.some((path) =>
     pathname.startsWith(path)
   );
@@ -25,5 +25,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/auth/callback", "/meeting/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/login",
+    "/auth/callback",
+    "/meeting/:path*",
+    "/room/:path*",
+  ],
 };
