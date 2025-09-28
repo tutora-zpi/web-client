@@ -13,3 +13,16 @@ export enum ClassUserRole {
   MEMBER = "MEMBER",
   HOST = "HOST",
 }
+
+export interface Invitation {
+  classId: string;
+  userId: string;
+  status: InvitationStatus;
+  createdAt: Date;
+}
+
+export enum InvitationStatus {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  REJECTED = "REJECTED",
+}

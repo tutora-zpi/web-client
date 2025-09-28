@@ -18,7 +18,7 @@ import { CreateRoomButton } from "./create-room-button";
 import { Plus } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 
-export function NewCreateRoomDialog() {
+export function CreateRoomDialog() {
   const [roomName, setRoomName] = useState("");
 
   return (

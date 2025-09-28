@@ -1,5 +1,5 @@
 import { ClassroomCard } from "@/components/dashboard/classroom-card";
-import { NewCreateRoomDialog } from "@/components/dashboard/new-create-room-dialog";
+import { CreateRoomDialog } from "@/components/dashboard/create-room-dialog";
 import { Navbar } from "@/components/navbar";
 import { Class } from "@/types/class";
 import { cookies } from "next/headers";
@@ -32,7 +32,7 @@ export default async function Dashboard() {
         className=" flex-1 p-4 overflow-y-auto grid grid-cols-2 gap-4 sm:justify-start md:grid-cols-3 lg:grid-cols-5
          "
       >
-        <NewCreateRoomDialog />
+        <CreateRoomDialog />
         {classes.map((classroom) => (
           <ClassroomCard
             key={classroom.id}
