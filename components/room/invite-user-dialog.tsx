@@ -18,6 +18,7 @@ import { User } from "@/types/user";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useEffect, useState } from "react";
 import { InviteUserButton } from "./invite-user-button";
+import { UserRoundPlus } from "lucide-react";
 
 export function InviteUserDialog({
   host,
@@ -47,7 +48,9 @@ export function InviteUserDialog({
     <Dialog>
       <form>
         <DialogTrigger asChild>
-          <Button variant="outline">Invite</Button>
+          <Button variant="outline">
+            <UserRoundPlus />
+          </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

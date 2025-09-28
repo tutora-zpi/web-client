@@ -1,5 +1,7 @@
 import { Navbar } from "@/components/navbar";
 import { InviteUserDialog } from "@/components/room/invite-user-dialog";
+import { UsersDropdown } from "@/components/room/users-dropdown";
+import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
 import { Class } from "@/types/class";
 import { User } from "@/types/user";
@@ -63,17 +65,31 @@ export default async function Page({
     <>
       <Navbar />
 
-      <div>
-        <h1>{data.name}</h1>
-        <div>
-          {users.map((member) => (
-            <div key={member.id}>
-              {member.name} {member.surname}
-            </div>
-          ))}
+      <div className="m-4">
+        <div className="flex justify-center gap-2 items-center">
+          <h1 className="text-center text-3xl font-bold">{data.name}</h1>
+          <UsersDropdown users={users} />
+          <InviteUserDialog classId={slug} host={host} />
+        </div>
+
+        <div className="flex justify-between mt-4 gap-2">
+          <div className="flex-1 min-h-20 bg-secondary">
+            <h2 className="text-center">Chat container</h2>
+          </div>
+          <div className="flex-1 text-center min-h-20 bg-secondary">
+            <h2>Notes Container</h2>
+          </div>
+        </div>
+
+        <div className="flex justify-center mt-4">
+          {users.length > 1 && (
+            <StartMeetingButton
+              user={host}
+              friend={users.find((user) => user.id !== host.id)!}
+            />
+          )}
         </div>
       </div>
-      <InviteUserDialog classId={slug} host={host} />
     </>
   );
 }

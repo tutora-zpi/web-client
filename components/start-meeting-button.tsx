@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { StartMeetingDTO } from "@/types/meeting";
 import { User } from "@/types/user";
-import { Plus } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -70,7 +70,7 @@ export function StartMeetingButton({
   return (
     <div className=" ">
       <Button onClick={startMeeting} disabled={isLoading}>
-        {isLoading ? "Starting..." : <Plus />}
+        {isLoading ? "Starting..." : "Start Meeting"}
       </Button>
     </div>
   );
