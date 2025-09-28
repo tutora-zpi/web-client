@@ -4,6 +4,7 @@ import ThemeModeToggle from "./theme-mode-toggle";
 import { getUser } from "@/lib/auth";
 import { LogoutButton } from "./logout-button";
 import { tutoraInfo } from "@/lib/config";
+import { UsersRound } from "lucide-react";
 
 export async function Navbar() {
   const user = await getUser();
@@ -19,8 +20,14 @@ export async function Navbar() {
         {user ? (
           <>
             <Button asChild variant="secondary">
+              <Link href="/dashboard/invitations">
+                <UsersRound />
+              </Link>
+            </Button>
+            <Button asChild variant="secondary">
               <Link href="/dashboard">Dashboard</Link>
             </Button>
+
             <LogoutButton />
           </>
         ) : (
