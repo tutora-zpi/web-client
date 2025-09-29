@@ -9,6 +9,7 @@ import {
 import InvitationButtons from "./invitation-buttons";
 import { Class } from "@/types/class";
 import { User } from "@/types/user";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export async function InvitationCard({
   classroom,
@@ -28,8 +29,14 @@ export async function InvitationCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col ">
-        <div className="flex flex-col gap-2">
-          {user.name} {user.surname}
+        <div className="flex items-center gap-2">
+          <Avatar>
+            <AvatarImage className="rounded-full" src={user.avatarUrl} />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+          <span className="text-sm">
+            {user.name} {user.surname}
+          </span>
         </div>
       </CardContent>
       <CardFooter>
