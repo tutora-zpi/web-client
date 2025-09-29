@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function InviteUserButton({
@@ -10,15 +11,16 @@ export function InviteUserButton({
   classId: string;
   userId: string;
 }) {
-  const createRoom = async () => {
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+
+  const inviteUser = async () => {
     try {
       const res = await fetch(`/api/invitations/${classId}/users/${userId}`, {
         method: "POST",
       });
 
       if (res.ok) {
-        const data = await res.json();
-        console.log(data);
+        setIsButtonDisabled(true);
         toast("User Invited!", {
           description: `User will be notified!`,
         });
@@ -39,7 +41,9 @@ export function InviteUserButton({
 
   return (
     <div className=" ">
-      <Button onClick={createRoom}>Invite</Button>
+      <Button onClick={inviteUser} disabled={isButtonDisabled}>
+        Invite
+      </Button>
     </div>
   );
 }

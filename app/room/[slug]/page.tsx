@@ -3,7 +3,7 @@ import { InviteUserDialog } from "@/components/room/invite-user-dialog";
 import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
-import { Class } from "@/types/class";
+import { Class, Invitation } from "@/types/class";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
 
@@ -48,6 +48,23 @@ const getClass = async (id: string): Promise<Class> => {
   return classRoom;
 };
 
+const getClassInvitations = async (id: string): Promise<Invitation[]> => {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_CLASS_SERVICE}/invitations/classes/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return await response.json();
+};
+
 export default async function Page({
   params,
 }: {
@@ -61,6 +78,8 @@ export default async function Page({
 
   const users = await getUsers(data.members.map((member) => member.userId));
 
+  const invitations = await getClassInvitations(slug);
+
   return (
     <>
       <Navbar />
@@ -69,7 +88,11 @@ export default async function Page({
         <div className="flex justify-center gap-2 items-center">
           <h1 className="text-center text-3xl font-bold">{data.name}</h1>
           <UsersDropdown users={users} />
-          <InviteUserDialog classId={slug} host={host} />
+          <InviteUserDialog
+            classId={slug}
+            host={host}
+            userIds={invitations.map((invitation) => invitation.userId)}
+          />
         </div>
 
         <div className="flex justify-between mt-4 gap-2">
