@@ -1,3 +1,5 @@
+import { User } from "./user";
+
 export interface Class {
   id: string;
   name: string;
@@ -19,6 +21,11 @@ export interface Invitation {
   userId: string;
   status: InvitationStatus;
   createdAt: Date;
+}
+
+export interface InvitationWithDetails extends Invitation {
+  classDetails: Class;
+  userDetails: User;
 }
 
 export enum InvitationStatus {

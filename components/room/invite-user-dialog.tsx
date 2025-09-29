@@ -23,9 +23,11 @@ import { UserRoundPlus } from "lucide-react";
 export function InviteUserDialog({
   host,
   classId,
+  userIds,
 }: {
   host: User;
   classId: string;
+  userIds: string[];
 }) {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,10 +73,10 @@ export function InviteUserDialog({
               />
             </div>
 
-            <div>
+            <div className="flex flex-col gap-4">
               {users.map((user) => (
-                <div key={user.id} className="flex justify-between">
-                  <div className="flex items-center gap-2 ">
+                <div key={user.id} className="flex justify-between ">
+                  <div className="flex items-center gap-2">
                     <Avatar>
                       <AvatarImage
                         className="rounded-full h-10 w-10"
@@ -86,10 +88,14 @@ export function InviteUserDialog({
                       <p>
                         {user.name} {user.surname}
                       </p>
-                      <p className="text-xs">{user.email}</p>
+                      <p className="text-xs truncate">{user.email}</p>
                     </div>
                   </div>
-                  <InviteUserButton userId={user.id} classId={classId} />
+                  {userIds.includes(user.id) ? (
+                    <Button disabled>Invited</Button>
+                  ) : (
+                    <InviteUserButton userId={user.id} classId={classId} />
+                  )}
                 </div>
               ))}
             </div>
