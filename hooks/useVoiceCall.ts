@@ -49,7 +49,7 @@ export const useVoiceCall = ({
 
       return stream;
     } catch (err) {
-      setError("Nie można uzyskać dostępu do mikrofonu");
+      setError("No micro access");
       throw err;
     }
   }, []);

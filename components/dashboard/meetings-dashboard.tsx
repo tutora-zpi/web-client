@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Meeting, MeetingMember } from "@/types/meeting";
+import { Meeting, UserDTO } from "@/types/meeting";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "../ui/button";
 import { Trash } from "lucide-react";
@@ -27,7 +27,7 @@ export default function MeetingsDashboard() {
 
   const endMeeting = async (meeting: Meeting) => {
     const updatedMeetings = meetings.filter(
-      (m) => m.data.meetingID !== meeting.data.meetingID
+      (m) => m.data.meetingId !== meeting.data.meetingId
     );
     localStorage.setItem("meetingsHistory", JSON.stringify(updatedMeetings));
     setMeetings(updatedMeetings);
@@ -37,9 +37,9 @@ export default function MeetingsDashboard() {
     <div className="flex flex-col gap-2">
       <div className="text-xl">Meetings:</div>
       {meetings.map((meeting) => (
-        <div key={meeting.data.meetingID}>
+        <div key={meeting.data.meetingId}>
           <MeetingCard
-            id={meeting.data.meetingID}
+            id={meeting.data.meetingId}
             members={meeting.data.members}
             onDelete={() => endMeeting(meeting)}
           />
@@ -55,7 +55,7 @@ const MeetingCard = ({
   onDelete,
 }: {
   id: string;
-  members: MeetingMember[];
+  members: UserDTO[];
   onDelete: () => void;
 }) => {
   return (
