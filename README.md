@@ -1,7 +1,5 @@
 ## Routes
 
-## Routes
-
 - `/` – homepage  
 
 - `/dashboard` – dashboard  

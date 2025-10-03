@@ -4,11 +4,13 @@ export interface Meeting {
 }
 
 export interface MeetingData {
-  meetingID: string;
-  members: MeetingMember[];
+  meetingId: string;
+  members: UserDTO[]; // -> members?: MeetingMember[] | null;
+  // timestamp?: number | null;
+  // title: string;
 }
 
-export interface MeetingMember {
+export interface UserDTO {
   id: string;
   firstName: string;
   lastName: string;
@@ -16,7 +18,9 @@ export interface MeetingMember {
 }
 
 export interface StartMeetingDTO {
-  members: MeetingMember[];
+  members: UserDTO[];
+  // title: string;
+  // classId: string;
 }
 
 export interface ChatData {

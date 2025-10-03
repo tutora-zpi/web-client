@@ -8,6 +8,7 @@ export default function Page() {
   return (
     <>
       <Navbar />
+
       <div className="max-w-screen-md mx-auto text-center font-bold p-4">
         <h1>
           <span className="text-transparent text-4xl md:text-7xl px-2 bg-gradient-to-r from-[#D247BF] to-primary bg-clip-text">
