@@ -20,7 +20,7 @@ export async function Navbar() {
           {tutoraInfo.name}
         </Link>
       </div>
-      <div className="flex justify-center items-center gap-2">
+      <div className="flex justify-center items-center gap-3">
         {user ? (
           <>
             <Notifications token={token!} />

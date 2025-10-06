@@ -89,7 +89,7 @@ export default function Notifications({ token }: { token: string }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="relative">
+        <Button variant="secondary" className="relative">
           <Bell />
           <Badge
             variant="destructive"

@@ -170,12 +170,18 @@ export default async function Page({
 
         <div className="flex justify-between mt-4 gap-2">
           <div className="flex-1 min-h-20">
-            <Chat
-              meetingId={slug}
-              userId={host.id}
-              token={token!}
-              chatMessages={chatMessages}
-            />
+            {users.length > 1 ? (
+              <Chat
+                meetingId={slug}
+                userId={host.id}
+                token={token!}
+                chatMessages={chatMessages}
+              />
+            ) : (
+              <div className="text-center">
+                No messages yet. No one to talk to 😔
+              </div>
+            )}
           </div>
           <div className="flex-1 text-center min-h-20 bg-secondary">
             <h2>Notes Container</h2>

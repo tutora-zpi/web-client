@@ -8,7 +8,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { UserRoundCheck } from "lucide-react";
@@ -22,12 +21,10 @@ export function UsersDropdown({ users }: { users: User[] }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-60 bg-secondary rounded-xl p-2">
-        <DropdownMenuLabel>users: {users.length}</DropdownMenuLabel>
-
-        <DropdownMenuGroup className="flex flex-col ">
+        <DropdownMenuGroup className="flex flex-col gap-2">
           {users.map((user) => (
             <DropdownMenuItem key={user.id}>
-              <div className="flex items-center gap-2 ">
+              <div className="flex items-center gap-2">
                 <Avatar>
                   <AvatarImage
                     className="rounded-full h-6 w-6"
