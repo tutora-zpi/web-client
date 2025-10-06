@@ -1,9 +1,11 @@
+import Chat from "@/components/meeting/chat";
 import { Navbar } from "@/components/navbar";
 import { InviteUserDialog } from "@/components/room/invite-user-dialog";
 import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
-import { Class, Invitation } from "@/types/class";
+import { Class, CreateChatDTO, Invitation } from "@/types/class";
+import { ChatMessage } from "@/types/meeting";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
 
@@ -65,12 +67,77 @@ const getClassInvitations = async (id: string): Promise<Invitation[]> => {
   return await response.json();
 };
 
+const getChatMessages = async (
+  roomId: string,
+  members: User[]
+): Promise<ChatMessage[]> => {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${roomId}/messages`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const chatData = await response.json();
+  if (chatData.success === true) {
+    return chatData.data;
+  } else {
+    await createChat(roomId, members);
+  }
+  return [];
+};
+
+const createChat = async (roomId: string, members: User[]) => {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  const requestBody: CreateChatDTO = {
+    roomID: roomId,
+    members: [
+      {
+        id: members[0].id,
+        firstName: members[0].name,
+        lastName: members[0].surname,
+        avatarURL: members[0].avatarUrl,
+      },
+      {
+        id: members[1].id,
+        firstName: members[1].name,
+        lastName: members[1].surname,
+        avatarURL: members[1].avatarUrl,
+      },
+    ],
+  };
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/general`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    }
+  );
+
+  return await response.json();
+};
+
 export default async function Page({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
 
   const host = await requireAuth();
 
@@ -79,6 +146,12 @@ export default async function Page({
   const users = await getUsers(data.members.map((member) => member.userId));
 
   const invitations = await getClassInvitations(slug);
+
+  let chatMessages: ChatMessage[] = [];
+
+  if (users.length > 1) {
+    chatMessages = await getChatMessages(slug, users);
+  }
 
   return (
     <>
@@ -96,8 +169,13 @@ export default async function Page({
         </div>
 
         <div className="flex justify-between mt-4 gap-2">
-          <div className="flex-1 min-h-20 bg-secondary">
-            <h2 className="text-center">Chat container</h2>
+          <div className="flex-1 min-h-20">
+            <Chat
+              meetingId={slug}
+              userId={host.id}
+              token={token!}
+              chatMessages={chatMessages}
+            />
           </div>
           <div className="flex-1 text-center min-h-20 bg-secondary">
             <h2>Notes Container</h2>

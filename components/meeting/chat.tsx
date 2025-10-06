@@ -8,6 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { useEffect, useMemo, useRef } from "react";
 
 const formSchema = z.object({
   message: z.string().min(1, "Message cannot be empty"),
@@ -24,7 +25,17 @@ export default function Chat({
   token: string;
   chatMessages: ChatMessage[];
 }) {
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const { messages, sendMessage } = useChat(userId ?? "", token, meetingId);
+
+  const allMessages = useMemo(
+    () => [...chatMessages, ...messages],
+    [chatMessages, messages]
+  );
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [allMessages]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -33,15 +44,13 @@ export default function Chat({
     },
   });
 
-  const allMessages = [...chatMessages, ...messages];
-
   function onSubmit(values: z.infer<typeof formSchema>) {
     sendMessage(values.message);
     form.reset();
   }
 
   return (
-    <div className="flex flex-col h-full justify-between">
+    <div className="flex flex-col h-full justify-between ">
       <h2 className="text-center">Chat</h2>
       <div className="overflow-y-auto h-100 border p-2 rounded">
         {allMessages.length > 0 ? (
@@ -55,8 +64,9 @@ export default function Chat({
           <p className="text-center">No messages yet.</p>
         )}
       </div>
+      <div ref={messagesEndRef} />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 mt-2">
           <FormField
             control={form.control}
             name="message"

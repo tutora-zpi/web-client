@@ -1,3 +1,4 @@
+import { UserDTO } from "./meeting";
 import { User } from "./user";
 
 export interface Class {
@@ -32,4 +33,9 @@ export enum InvitationStatus {
   PENDING = "PENDING",
   ACCEPTED = "ACCEPTED",
   REJECTED = "REJECTED",
+}
+
+export interface CreateChatDTO {
+  members: UserDTO[];
+  roomID: string;
 }
