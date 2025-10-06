@@ -19,8 +19,8 @@ export interface UserDTO {
 
 export interface StartMeetingDTO {
   members: UserDTO[];
-  // title: string;
-  // classId: string;
+  title: string;
+  classId: string;
 }
 
 export interface ChatData {

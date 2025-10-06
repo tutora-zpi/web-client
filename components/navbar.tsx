@@ -5,8 +5,12 @@ import { getUser } from "@/lib/auth";
 import { LogoutButton } from "./logout-button";
 import { tutoraInfo } from "@/lib/config";
 import { UsersRound } from "lucide-react";
+import Notifications from "./notifications/notifications";
+import { cookies } from "next/headers";
 
 export async function Navbar() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
   const user = await getUser();
 
   return (
@@ -19,6 +23,7 @@ export async function Navbar() {
       <div className="flex justify-center items-center gap-2">
         {user ? (
           <>
+            <Notifications token={token!} />
             <Button asChild variant="secondary">
               <Link href="/dashboard/invitations">
                 <UsersRound />

@@ -109,6 +109,7 @@ export default async function Page({
             <StartMeetingButton
               user={host}
               friend={users.find((user) => user.id !== host.id)!}
+              classId={slug}
             />
           )}
         </div>

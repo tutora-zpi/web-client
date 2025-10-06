@@ -11,15 +11,19 @@ import { toast } from "sonner";
 export function StartMeetingButton({
   friend,
   user,
+  classId,
 }: {
   friend: User;
   user: User;
+  classId: string;
 }) {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
 
   const requestBody: StartMeetingDTO = {
+    title: "test12312312321",
+    classId: classId,
     members: [
       {
         id: user.id,

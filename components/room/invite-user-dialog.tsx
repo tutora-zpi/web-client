@@ -92,7 +92,7 @@ export function InviteUserDialog({
                     </div>
                   </div>
                   {userIds.includes(user.id) ? (
-                    <Button disabled>Invited</Button>
+                    <Button disabled>Invite</Button>
                   ) : (
                     <InviteUserButton userId={user.id} classId={classId} />
                   )}
