@@ -29,12 +29,6 @@ export interface InvitationWithDetails extends Invitation {
   userDetails: User;
 }
 
-export interface InvitationDTO {
-  classId: string;
-  sender: UserDTO;
-  receiver: UserDTO;
-}
-
 export enum InvitationStatus {
   PENDING = "PENDING",
   ACCEPTED = "ACCEPTED",
