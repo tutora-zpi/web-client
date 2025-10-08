@@ -16,11 +16,13 @@ import { Button } from "../ui/button";
 import { Bell } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Notification } from "@/types/notification";
-
 import { NotificationItem } from "./notification-item";
+import { useRouter } from "next/navigation";
 
 export default function Notifications({ token }: { token: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const router = useRouter();
 
   useEffect(() => {
     fetchNotifications();
@@ -31,9 +33,21 @@ export default function Notifications({ token }: { token: string }) {
 
     const handleNotification = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
-      toast("Notification", {
-        description: data.title,
-      });
+
+      const notificationDate = new Date(data.data.startedTime);
+
+      if (event.data.pattern === "MeetingStartedEvent")
+        toast.info("Meeting started!", {
+          description: notificationDate.toISOString(),
+          action: {
+            label: "Join",
+            onClick: () => router.push(`meeting/${data.data.meetingId}`),
+          },
+        });
+      //fix on be side
+      else {
+        toast.info("Class Invitation");
+      }
       fetchNotifications();
     };
 
@@ -60,7 +74,11 @@ export default function Notifications({ token }: { token: string }) {
       }
     );
     const data = await response.json();
-    setNotifications(data.data);
+    if (!data.data) {
+      setNotifications([]);
+    } else {
+      setNotifications(data.data);
+    }
   };
 
   const dismissNotification = async (id: string) => {
@@ -91,12 +109,14 @@ export default function Notifications({ token }: { token: string }) {
       <SheetTrigger asChild>
         <Button variant="secondary" className="relative">
           <Bell />
-          <Badge
-            variant="destructive"
-            className="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center p-1 rounded-full"
-          >
-            {notifications.length}
-          </Badge>
+          {notifications.length > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center p-1 rounded-full"
+            >
+              {notifications.length}
+            </Badge>
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent>

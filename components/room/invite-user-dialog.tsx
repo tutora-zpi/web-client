@@ -94,7 +94,11 @@ export function InviteUserDialog({
                   {userIds.includes(user.id) ? (
                     <Button disabled>Invite</Button>
                   ) : (
-                    <InviteUserButton userId={user.id} classId={classId} />
+                    <InviteUserButton
+                      sender={host}
+                      receiver={user}
+                      classId={classId}
+                    />
                   )}
                 </div>
               ))}

@@ -26,7 +26,7 @@ export function CreateRoomDialog() {
       <form>
         <DialogTrigger asChild className="aspect-square">
           <button className="w-full h-full justify-center flex items-center">
-            <Card className="hover:cursor-pointer hover:bg-secondary/50 dark:hover:bg-secondary/20 w-full h-full flex items-center justify-center">
+            <Card className="hover:cursor-pointer hover:bg-secondary/50 dark:hover:bg-secondary/10 w-full h-full flex items-center justify-center">
               <CardContent>
                 <Plus className="h-24 w-24 text-gray-400  group-hover:text-primary dark:text-gray-600" />
               </CardContent>
