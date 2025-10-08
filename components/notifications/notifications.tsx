@@ -111,7 +111,7 @@ export default function Notifications({ token }: { token: string }) {
             key={notification.id}
             title={notification.id}
             description={notification.title}
-            link="#"
+            link={notification.redirectionLink}
             dismiss={() => dismissNotification(notification.id)}
           />
         ))}

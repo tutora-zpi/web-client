@@ -55,7 +55,7 @@ export function StartMeetingButton({
           description: `We will redirect you shortly!`,
         });
 
-        router.push(`/meeting/${data.data.meetingID}`);
+        router.push(`/meeting/${data.data.meetingId}`);
       } else {
         const error = await res.json();
         toast("Error!", {
