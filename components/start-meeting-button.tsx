@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { StartMeetingDTO } from "@/types/meeting";
 import { User } from "@/types/user";
+import { Phone } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -22,7 +23,8 @@ export function StartMeetingButton({
   const [isLoading, setIsLoading] = useState(false);
 
   const requestBody: StartMeetingDTO = {
-    title: "test12312312321",
+    // will be improved later
+    title: "Temporay Meeting",
     classId: classId,
     members: [
       {
@@ -72,10 +74,8 @@ export function StartMeetingButton({
   };
 
   return (
-    <div className=" ">
-      <Button onClick={startMeeting} disabled={isLoading}>
-        {isLoading ? "Starting..." : "Start Meeting"}
-      </Button>
-    </div>
+    <Button onClick={startMeeting} disabled={isLoading} variant="outline">
+      <Phone />
+    </Button>
   );
 }

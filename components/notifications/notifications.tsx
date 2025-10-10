@@ -13,7 +13,7 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { Button } from "../ui/button";
-import { Bell } from "lucide-react";
+import { Bell, UsersRound } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Notification } from "@/types/notification";
 import { NotificationItem } from "./notification-item";
@@ -34,9 +34,8 @@ export default function Notifications({ token }: { token: string }) {
     const handleNotification = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
 
-      const notificationDate = new Date(data.data.startedTime);
-
-      if (event.data.pattern === "MeetingStartedEvent")
+      if (event.data.pattern === "MeetingStartedEvent") {
+        const notificationDate = new Date(data.data.startedTime);
         toast.info("Meeting started!", {
           description: notificationDate.toISOString(),
           action: {
@@ -44,9 +43,14 @@ export default function Notifications({ token }: { token: string }) {
             onClick: () => router.push(`meeting/${data.data.meetingId}`),
           },
         });
-      //fix on be side
-      else {
-        toast.info("Class Invitation");
+      } else {
+        toast.info("You got new invitation to class!", {
+          description: `Join ${event.data.className} and start learning!`,
+          action: {
+            label: <UsersRound />,
+            onClick: () => router.push(`dashboard/invitations`),
+          },
+        });
       }
       fetchNotifications();
     };
@@ -107,7 +111,7 @@ export default function Notifications({ token }: { token: string }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="secondary" className="relative">
+        <Button variant="secondary" className="relative" size="icon">
           <Bell />
           {notifications.length > 0 && (
             <Badge

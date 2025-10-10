@@ -50,8 +50,7 @@ export default function Chat({
   }
 
   return (
-    <div className="flex flex-col h-full justify-between ">
-      <h2 className="text-center">Chat</h2>
+    <div className="flex flex-col h-full justify-between w-full">
       <div className="overflow-y-auto h-100 border p-2 rounded">
         {allMessages.length > 0 ? (
           allMessages.map((message, idx) => (

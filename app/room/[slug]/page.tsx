@@ -1,5 +1,6 @@
 import Chat from "@/components/meeting/chat";
 import { Navbar } from "@/components/navbar";
+import { EmptyRoom } from "@/components/room/empty-room";
 import { InviteUserDialog } from "@/components/room/invite-user-dialog";
 import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
@@ -8,6 +9,8 @@ import { Class, CreateChatDTO, Invitation } from "@/types/class";
 import { ChatMessage } from "@/types/meeting";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LibraryBig } from "lucide-react";
 
 const getUsers = async (userIds: string[]): Promise<User[]> => {
   const cookieStore = await cookies();
@@ -156,47 +159,63 @@ export default async function Page({
   return (
     <>
       <Navbar />
-
       <div className="m-4">
-        <div className="flex justify-center gap-2 items-center">
-          <h1 className="text-center text-3xl font-bold">{data.name}</h1>
-          <UsersDropdown users={users} />
-          <InviteUserDialog
-            classId={slug}
-            host={host}
-            userIds={invitations.map((invitation) => invitation.userId)}
-          />
-        </div>
-
-        <div className="flex justify-between mt-4 gap-2">
-          <div className="flex-1 min-h-20">
-            {users.length > 1 ? (
-              <Chat
-                meetingId={slug}
-                userId={host.id}
-                token={token!}
-                chatMessages={chatMessages}
+        <div className="flex justify-between gap-2 items-center">
+          <div className="flex justify-center items-center gap-2">
+            <div>
+              <LibraryBig />
+            </div>
+            <h1 className="text-center text-3xl font-bold">{data.name}</h1>
+          </div>
+          <div className="flex justify-center items-center gap-2">
+            {users.length > 1 && (
+              <StartMeetingButton
+                user={host}
+                friend={users.find((user) => user.id !== host.id)!}
+                classId={slug}
               />
-            ) : (
-              <div className="text-center">
-                No messages yet. No one to talk to 😔
-              </div>
             )}
-          </div>
-          <div className="flex-1 text-center min-h-20 bg-secondary">
-            <h2>Notes Container</h2>
+            <UsersDropdown users={users} />
+            <InviteUserDialog
+              classId={slug}
+              host={host}
+              userIds={invitations.map((invitation) => invitation.userId)}
+            />
           </div>
         </div>
 
-        <div className="flex justify-center mt-4">
-          {users.length > 1 && (
-            <StartMeetingButton
-              user={host}
-              friend={users.find((user) => user.id !== host.id)!}
-              classId={slug}
-            />
-          )}
-        </div>
+        <Tabs defaultValue="chat" className="mt-2">
+          <div className="flex items-center justify-center">
+            <TabsList>
+              <TabsTrigger value="chat">Chat</TabsTrigger>
+              <TabsTrigger value="notes">Notes</TabsTrigger>
+            </TabsList>
+          </div>
+          <TabsContent
+            value="chat"
+            className="w-full flex justify-center gap-4"
+          >
+            <div className="min-h-15 w-9/12 ">
+              {users.length > 1 ? (
+                <Chat
+                  meetingId={slug}
+                  userId={host.id}
+                  token={token!}
+                  chatMessages={chatMessages}
+                />
+              ) : (
+                <div className="text-center">
+                  <EmptyRoom />
+                </div>
+              )}
+            </div>
+          </TabsContent>
+          <TabsContent value="notes">
+            <div className="flex-1 text-center min-h-15 bg-secondary">
+              <h2>Notes Container</h2>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   );
