@@ -34,7 +34,7 @@ export default function Notifications({ token }: { token: string }) {
     const handleNotification = (event: MessageEvent) => {
       const data = JSON.parse(event.data);
 
-      if (event.data.pattern === "MeetingStartedEvent") {
+      if (data.pattern === "MeetingStartedEvent") {
         const notificationDate = new Date(data.data.startedTime);
         toast.info("Meeting started!", {
           description: notificationDate.toISOString(),
@@ -45,7 +45,7 @@ export default function Notifications({ token }: { token: string }) {
         });
       } else {
         toast.info("You got new invitation to class!", {
-          description: `Join ${event.data.className} and start learning!`,
+          description: `Go to invitations and start learning!`,
           action: {
             label: <UsersRound />,
             onClick: () => router.push(`dashboard/invitations`),
