@@ -23,8 +23,9 @@ export function CreateRoomButton({ roomName }: { roomName: string }) {
       if (res.ok) {
         const data = await res.json();
 
-        toast("Room Created!", {
+        toast.success("Room Created!", {
           description: `We will redirect you shortly!`,
+          richColors: true,
         });
 
         router.push(`/room/${data.id}`);

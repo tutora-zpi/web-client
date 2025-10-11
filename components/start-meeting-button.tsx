@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { StartMeetingDTO } from "@/types/meeting";
 import { User } from "@/types/user";
+import { Phone } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,15 +12,20 @@ import { toast } from "sonner";
 export function StartMeetingButton({
   friend,
   user,
+  classId,
 }: {
   friend: User;
   user: User;
+  classId: string;
 }) {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
 
   const requestBody: StartMeetingDTO = {
+    // will be improved later
+    title: "Temporay Meeting",
+    classId: classId,
     members: [
       {
         id: user.id,
@@ -51,7 +57,7 @@ export function StartMeetingButton({
           description: `We will redirect you shortly!`,
         });
 
-        router.push(`/meeting/${data.data.meetingID}`);
+        router.push(`/meeting/${data.data.meetingId}`);
       } else {
         const error = await res.json();
         toast("Error!", {
@@ -68,10 +74,8 @@ export function StartMeetingButton({
   };
 
   return (
-    <div className=" ">
-      <Button onClick={startMeeting} disabled={isLoading}>
-        {isLoading ? "Starting..." : "Start Meeting"}
-      </Button>
-    </div>
+    <Button onClick={startMeeting} disabled={isLoading} variant="outline">
+      <Phone />
+    </Button>
   );
 }

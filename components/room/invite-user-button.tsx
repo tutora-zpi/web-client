@@ -1,32 +1,41 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { User } from "@/types/user";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export function InviteUserButton({
+  sender,
+  receiver,
   classId,
-  userId,
 }: {
+  sender: User;
+  receiver: User;
   classId: string;
-  userId: string;
 }) {
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const inviteUser = async () => {
     try {
-      const res = await fetch(`/api/invitations/${classId}/users/${userId}`, {
+      const res = await fetch(`/api/invitations`, {
         method: "POST",
+        body: JSON.stringify({
+          classId: classId,
+          sender: sender,
+          receiver: receiver,
+        }),
       });
 
       if (res.ok) {
         setIsButtonDisabled(true);
-        toast("User Invited!", {
-          description: `User will be notified!`,
+        toast.success(`${receiver.name} ${receiver.surname} invited!`, {
+          description: `${receiver.name} will be notified shortly!`,
+          richColors: true,
         });
       } else {
         const error = await res.json();
-        toast.error("Error!", {
+        toast.error("Error inviting the user!", {
           description: error.error || "Unknown error",
           richColors: true,
         });

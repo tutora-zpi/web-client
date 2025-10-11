@@ -1,7 +1,8 @@
 import { ClassroomCard } from "@/components/dashboard/classroom-card";
 import { CreateRoomDialog } from "@/components/dashboard/create-room-dialog";
 import { Navbar } from "@/components/navbar";
-import { Class } from "@/types/class";
+import { requireAuth } from "@/lib/auth";
+import { Class, ClassUserRole } from "@/types/class";
 import { cookies } from "next/headers";
 
 const getClasses = async (): Promise<Class[]> => {
@@ -23,6 +24,8 @@ const getClasses = async (): Promise<Class[]> => {
 };
 
 export default async function Dashboard() {
+  const host = await requireAuth();
+
   const classes = await getClasses();
 
   return (
@@ -33,14 +36,21 @@ export default async function Dashboard() {
          "
       >
         <CreateRoomDialog />
-        {classes.map((classroom) => (
-          <ClassroomCard
-            key={classroom.id}
-            id={classroom.id}
-            name={classroom.name}
-            classUsers={classroom.members}
-          />
-        ))}
+        {classes.map((classroom) => {
+          const hostUserId = classroom.members.find(
+            (member) => member.role === ClassUserRole.HOST
+          )?.userId;
+
+          return (
+            <ClassroomCard
+              key={classroom.id}
+              id={classroom.id}
+              name={classroom.name}
+              classUsers={classroom.members}
+              ableToDelete={host.id === hostUserId}
+            />
+          );
+        })}
       </div>
     </>
   );

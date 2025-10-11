@@ -77,6 +77,7 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
     });
 
     socket.on("board:sync", (payload) => {
+      console.log(payload);
       const { elements, appState } = payload.data ?? payload;
 
       try {
@@ -86,11 +87,9 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
           appState: appState ?? {},
         });
 
-        setTimeout(() => {
-          isUpdatingFromSocketRef.current = false;
-        }, 100);
+        isUpdatingFromSocketRef.current = false;
       } catch (error) {
-        console.error("❌ Failed to update scene:", error);
+        console.error("Error updating scene:", error);
         isUpdatingFromSocketRef.current = false;
       }
     });
@@ -100,18 +99,10 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
       socket.off("board:sync");
       socket.off("disconnect");
       socket.off("connect_error");
+      socketRef.current?.disconnect();
+      socketRef.current = null;
     };
   }, [excalidrawAPI]);
-
-  //cleanup
-  useEffect(() => {
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, []);
 
   return (
     <Excalidraw
