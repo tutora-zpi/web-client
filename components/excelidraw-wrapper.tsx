@@ -104,8 +104,6 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
     };
   }, [excalidrawAPI]);
 
-  //cleanup
-
   return (
     <Excalidraw
       excalidrawAPI={setExcalidrawAPI}
