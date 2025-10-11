@@ -24,6 +24,30 @@ export default function Notifications({ token }: { token: string }) {
 
   const router = useRouter();
 
+  const handleNotification = (event: MessageEvent) => {
+    const data = JSON.parse(event.data);
+
+    if (data.pattern === "MeetingStartedEvent") {
+      const notificationDate = new Date(data.data.startedTime);
+      toast.info("Meeting started!", {
+        description: notificationDate.toISOString(),
+        action: {
+          label: "Join",
+          onClick: () => router.push(`meeting/${data.data.meetingId}`),
+        },
+      });
+    } else {
+      toast.info("You got new invitation to class!", {
+        description: `Go to invitations and start learning!`,
+        action: {
+          label: <UsersRound />,
+          onClick: () => router.push(`dashboard/invitations`),
+        },
+      });
+    }
+    fetchNotifications();
+  };
+
   useEffect(() => {
     let eventSource: EventSource;
 
@@ -31,30 +55,6 @@ export default function Notifications({ token }: { token: string }) {
       eventSource = new EventSource(
         `${process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE}/api/v1/stream?token=${token}`
       );
-
-      const handleNotification = (event: MessageEvent) => {
-        const data = JSON.parse(event.data);
-
-        if (data.pattern === "MeetingStartedEvent") {
-          const notificationDate = new Date(data.data.startedTime);
-          toast.info("Meeting started!", {
-            description: notificationDate.toISOString(),
-            action: {
-              label: "Join",
-              onClick: () => router.push(`meeting/${data.data.meetingId}`),
-            },
-          });
-        } else {
-          toast.info("You got new invitation to class!", {
-            description: `Go to invitations and start learning!`,
-            action: {
-              label: <UsersRound />,
-              onClick: () => router.push(`dashboard/invitations`),
-            },
-          });
-        }
-        fetchNotifications();
-      };
 
       eventSource.addEventListener("notification", handleNotification);
 
@@ -68,6 +68,7 @@ export default function Notifications({ token }: { token: string }) {
     connect();
 
     return () => {
+      eventSource.removeEventListener("notification", handleNotification);
       eventSource.close();
     };
   }, [token]);
