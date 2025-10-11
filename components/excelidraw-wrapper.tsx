@@ -99,18 +99,12 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
       socket.off("board:sync");
       socket.off("disconnect");
       socket.off("connect_error");
+      socketRef.current?.disconnect();
+      socketRef.current = null;
     };
   }, [excalidrawAPI]);
 
   //cleanup
-  useEffect(() => {
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, []);
 
   return (
     <Excalidraw
