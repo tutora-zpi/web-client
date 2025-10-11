@@ -5,12 +5,15 @@ import { InviteUserDialog } from "@/components/room/invite-user-dialog";
 import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
-import { Class, CreateChatDTO, Invitation } from "@/types/class";
+import { ActiveMeeting, Class, CreateChatDTO, Invitation } from "@/types/class";
 import { ChatMessage } from "@/types/meeting";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LibraryBig } from "lucide-react";
+import { LibraryBig, Power } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const getUsers = async (userIds: string[]): Promise<User[]> => {
   const cookieStore = await cookies();
@@ -68,6 +71,35 @@ const getClassInvitations = async (id: string): Promise<Invitation[]> => {
   );
 
   return await response.json();
+};
+
+const getActiveMeeting = async (
+  classId: string
+): Promise<ActiveMeeting | null> => {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_MEETING_SCHEDULER_SERVICE}/api/v1/meeting/${classId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data?.data ?? null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return null;
+  }
 };
 
 const getChatMessages = async (
@@ -150,6 +182,8 @@ export default async function Page({
 
   const invitations = await getClassInvitations(slug);
 
+  const activeMeeting = await getActiveMeeting(slug);
+
   let chatMessages: ChatMessage[] = [];
 
   if (users.length > 1) {
@@ -168,12 +202,26 @@ export default async function Page({
             <h1 className="text-center text-3xl font-bold">{data.name}</h1>
           </div>
           <div className="flex justify-center items-center gap-2">
-            {users.length > 1 && (
+            {users.length > 1 && !activeMeeting && (
               <StartMeetingButton
                 user={host}
                 friend={users.find((user) => user.id !== host.id)!}
                 classId={slug}
               />
+            )}
+
+            {activeMeeting && (
+              <Button asChild variant="outline" className="relative ">
+                <div>
+                  <Link href={`/meeting/${activeMeeting.meetingId}`}>Join</Link>
+                  <Badge
+                    variant="default"
+                    className="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center p-1 rounded-full"
+                  >
+                    Live
+                  </Badge>
+                </div>
+              </Button>
             )}
             <UsersDropdown users={users} />
             <InviteUserDialog

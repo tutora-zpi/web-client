@@ -39,3 +39,9 @@ export interface CreateChatDTO {
   members: UserDTO[];
   roomID: string;
 }
+
+export interface ActiveMeeting {
+  meetingId: string;
+  title: string;
+  timestamp: number;
+}

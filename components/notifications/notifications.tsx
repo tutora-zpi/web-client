@@ -26,16 +26,18 @@ export default function Notifications({ token }: { token: string }) {
 
   const handleNotification = (event: MessageEvent) => {
     const data = JSON.parse(event.data);
+
     console.log(data);
 
-    if (data.data.redirectionLink.includes("meeting")) {
-      const notificationDate = new Date(data.data.startedTime);
+    if (data.redirectionLink.includes("meeting")) {
+      const notificationDate = new Date(data.createdAt);
       toast.info("Meeting started!", {
         description: notificationDate.toISOString(),
         action: {
           label: "Join",
-          onClick: () => router.push(`meeting/${data.data.meetingId}`),
+          onClick: () => router.push(`meeting/${data.meetingId}`),
         },
+        duration: 7000,
       });
     } else {
       toast.info("You got new invitation to class!", {
@@ -44,6 +46,7 @@ export default function Notifications({ token }: { token: string }) {
           label: <UsersRound />,
           onClick: () => router.push(`dashboard/invitations`),
         },
+        duration: 7000,
       });
     }
     fetchNotifications();
