@@ -48,7 +48,7 @@ export default async function Meeting({ meetingId }: { meetingId: string }) {
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
           <Board meetingId={meetingId} />
           <div className="flex justify-between items-center mt-2">
-            <Button asChild variant="secondary">
+            <Button asChild variant="secondary" className="mt-2">
               <Link href="/dashboard">Back to dashboard</Link>
             </Button>
             <VoiceConnection meetingId={meetingId} />

@@ -29,7 +29,7 @@ export default function VoiceConnection({ meetingId }: { meetingId: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col mt-2">
       <div className="flex justify-center items-center gap-2">
         {isConnected && (
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>

@@ -26,8 +26,9 @@ export default function Notifications({ token }: { token: string }) {
 
   const handleNotification = (event: MessageEvent) => {
     const data = JSON.parse(event.data);
+    console.log(data);
 
-    if (data.pattern === "MeetingStartedEvent") {
+    if (data.data.redirectionLink.includes("meeting")) {
       const notificationDate = new Date(data.data.startedTime);
       toast.info("Meeting started!", {
         description: notificationDate.toISOString(),
