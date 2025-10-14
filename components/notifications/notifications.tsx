@@ -142,15 +142,17 @@ export default function Notifications({
             Here are the list of the notifications
           </SheetDescription>
         </SheetHeader>
-        {notifications.map((notification: Notification) => (
-          <NotificationItem
-            key={notification.id}
-            title={notification.id}
-            description={notification.title}
-            link={notification.redirectionLink}
-            dismiss={() => dismissNotification(notification.id)}
-          />
-        ))}
+        <div className="overflow-auto p-2 gap-2 flex flex-col">
+          {notifications.map((notification: Notification) => (
+            <NotificationItem
+              key={notification.id}
+              title={notification.title}
+              description={notification.body}
+              link={notification.redirectionLink}
+              dismiss={() => dismissNotification(notification.id)}
+            />
+          ))}
+        </div>
         <SheetFooter>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
