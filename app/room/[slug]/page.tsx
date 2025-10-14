@@ -10,7 +10,7 @@ import { ChatMessage } from "@/types/meeting";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LibraryBig, Power } from "lucide-react";
+import { LibraryBig } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -213,7 +213,11 @@ export default async function Page({
             {activeMeeting && (
               <Button asChild variant="outline" className="relative ">
                 <div>
-                  <Link href={`/meeting/${activeMeeting.meetingId}`}>Join</Link>
+                  <Link
+                    href={`/room/${slug}/meeting/${activeMeeting.meetingId}`}
+                  >
+                    Join
+                  </Link>
                   <Badge
                     variant="default"
                     className="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center p-1 rounded-full"

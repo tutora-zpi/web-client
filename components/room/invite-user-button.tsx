@@ -29,10 +29,6 @@ export function InviteUserButton({
 
       if (res.ok) {
         setIsButtonDisabled(true);
-        toast.success(`${receiver.name} ${receiver.surname} invited!`, {
-          description: `${receiver.name} will be notified shortly!`,
-          richColors: true,
-        });
       } else {
         const error = await res.json();
         toast.error("Error inviting the user!", {

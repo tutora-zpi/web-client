@@ -29,7 +29,13 @@ const getChatMessages = async (meetingId: string): Promise<ChatMessage[]> => {
   return [];
 };
 
-export default async function Meeting({ meetingId }: { meetingId: string }) {
+export default async function Meeting({
+  meetingId,
+  classId,
+}: {
+  meetingId: string;
+  classId: string;
+}) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
   const user = await requireAuth();
@@ -49,7 +55,7 @@ export default async function Meeting({ meetingId }: { meetingId: string }) {
           <Board meetingId={meetingId} />
           <div className="flex justify-between items-center mt-2">
             <Button asChild variant="secondary" className="mt-2">
-              <Link href="/dashboard">Back to dashboard</Link>
+              <Link href={`/room/${classId}`}>Back to class</Link>
             </Button>
             <VoiceConnection meetingId={meetingId} />
           </div>
