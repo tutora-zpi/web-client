@@ -8,8 +8,6 @@ export async function POST(
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
-  console.log(token);
-
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_CLASS_SERVICE}/invitations/${classId}/decline`,
     {

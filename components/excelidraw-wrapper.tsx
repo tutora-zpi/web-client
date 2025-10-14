@@ -12,6 +12,7 @@ import {
   Theme,
 } from "@excalidraw/excalidraw/element/types";
 import { ParamValue } from "next/dist/server/request/params";
+import { useTheme } from "next-themes";
 
 const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
   const [excalidrawAPI, setExcalidrawAPI] =
@@ -19,10 +20,18 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
 
   const [theme, setTheme] = useState<Theme | undefined>();
 
+  const { theme: themeMode } = useTheme();
+
   const socketRef = useRef<Socket | null>(null);
   const elementsRef = useRef<readonly OrderedExcalidrawElement[] | null>(null);
   const appStateRef = useRef<AppState | null>(null);
   const isUpdatingFromSocketRef = useRef(false);
+
+  useEffect(() => {
+    if (!themeMode) return;
+
+    setTheme((themeMode as string) === "dark" ? "dark" : "light");
+  }, [themeMode]);
 
   const handleChange = useCallback(
     (elements: readonly OrderedExcalidrawElement[], appState: AppState) => {
@@ -34,9 +43,6 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
 
       elementsRef.current = elements;
       appStateRef.current = appState;
-
-      const theme = window.localStorage.getItem("theme") as Theme | undefined;
-      setTheme(theme ?? "light");
     },
     [excalidrawAPI]
   );
@@ -77,7 +83,6 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
     });
 
     socket.on("board:sync", (payload) => {
-      console.log(payload);
       const { elements, appState } = payload.data ?? payload;
 
       try {

@@ -22,8 +22,6 @@ export function StartMeetingButton({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log(new Date(Date.now() + 60 * 60 * 1000).toISOString());
-
   const requestBody: StartMeetingDTO = {
     finishDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     title: "Temporay Meeting",

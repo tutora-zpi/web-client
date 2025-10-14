@@ -247,13 +247,14 @@ export default async function Page({
             value="chat"
             className="w-full flex justify-center gap-4"
           >
-            <div className="min-h-15 w-9/12 ">
+            <div className="w-9/12 h-120">
               {users.length > 1 ? (
                 <Chat
                   meetingId={slug}
                   userId={host.id}
                   token={token!}
                   chatMessages={chatMessages}
+                  users={users}
                 />
               ) : (
                 <div className="text-center">
