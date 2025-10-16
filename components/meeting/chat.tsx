@@ -64,11 +64,10 @@ export default function Chat({
 
   return (
     <div className="flex flex-col h-full justify-between w-full">
-      <div className="overflow-y-auto border p-2 rounded flex flex-col gap-2">
+      <div className="overflow-y-auto border p-2 rounded flex flex-col gap-3 h-full">
         {allMessages.length > 0 ? (
           allMessages.map((message) => {
             const user = users.find((user) => user.id === message.sender);
-            console.log(message.id);
             return (
               <Message
                 key={message.id}

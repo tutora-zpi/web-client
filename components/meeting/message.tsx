@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Reaction } from "@/types/meeting";
-import { Badge } from "../ui/badge";
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢"];
 
@@ -42,13 +41,29 @@ export default function Message({
     setOpen(false);
   };
 
+  const groupedReactions: Record<string, number> = {};
+  if (reactions && reactions.length > 0) {
+    for (const r of reactions) {
+      groupedReactions[r.emoji] = (groupedReactions[r.emoji] || 0) + 1;
+    }
+  }
+
   return (
     <div className="flex w-full max-w-lg flex-col">
       <Item variant="outline" className="relative">
-        {reactions && reactions.length > 0 && (
-          <Badge className="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center p-1 rounded-full">
-            {reactions.map((reaction) => reaction.emoji).join("")}
-          </Badge>
+        {Object.keys(groupedReactions).length > 0 && (
+          <div className="absolute -top-2 -right-2 flex items-center p-1 rounded-md bg-secondary">
+            {Object.entries(groupedReactions).map(([emoji, count]) => (
+              <span key={emoji} className="flex items-center gap-1 text-xs">
+                <span>{emoji}</span>
+                {count > 1 && (
+                  <span className="text-xs font-medium leading-none">
+                    {count}
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
         )}
         <Avatar className="w-8 h-8">
           <AvatarImage src={avatarUrl} className="rounded-full" />

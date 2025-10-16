@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { requireAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { User } from "@/types/user";
+import { EndMeetingButton } from "./end-meeting-button";
 
 const getChatMessages = async (
   meetingId: string,
@@ -107,6 +108,7 @@ export default async function Meeting({
             <Button asChild variant="secondary" className="mt-2">
               <Link href={`/room/${classId}`}>Back to class</Link>
             </Button>
+            <EndMeetingButton meetingId={meetingId} classId={classId} />
             <VoiceConnection meetingId={meetingId} />
           </div>
         </div>

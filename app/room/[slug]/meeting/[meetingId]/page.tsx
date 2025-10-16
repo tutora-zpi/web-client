@@ -9,7 +9,8 @@ export default async function Page({
   const { slug, meetingId } = await params;
   return (
     <>
-      <Navbar /> <Meeting meetingId={meetingId} classId={slug} />
+      <Navbar />
+      <Meeting meetingId={meetingId} classId={slug} />
     </>
   );
 }
