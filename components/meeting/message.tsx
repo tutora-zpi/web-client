@@ -78,7 +78,6 @@ export default function Message({
           </ItemTitle>
           <ItemDescription className="break-words">
             <span>{message}</span>
-            <span>{reactions?.length}</span>
           </ItemDescription>
         </ItemContent>
         <ItemActions>

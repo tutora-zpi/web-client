@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
 import PlannedMeetings from "@/components/room/planned-meetings";
+import PlanMeetingCalendar from "@/components/room/plan-meetings-calendar";
 
 const getUsers = async (userIds: string[], token: string): Promise<User[]> => {
   const users = await Promise.all(
@@ -269,8 +270,15 @@ export default async function Page({
           </div>
         </div>
 
-        <div className="flex w-full justify-around items-center mt-2">
-          <PlannedMeetings meetings={meetings} />
+        <div className="flex w-full justify-around items-start mt-5">
+          <div className="flex flex-col items-center gap-2">
+            <PlannedMeetings meetings={meetings} />
+            <PlanMeetingCalendar
+              user={host}
+              friend={users.find((user) => user.id !== host.id)!}
+              classId={slug}
+            />
+          </div>
 
           <Tabs defaultValue="chat" className=" w-3/5">
             <div className="flex items-center justify-start w-full">
