@@ -8,7 +8,17 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "../ui/empty";
+import { MessageCircleX } from "lucide-react";
+import Message from "./message";
+import { User } from "@/types/user";
 
 const formSchema = z.object({
   message: z.string().min(1, "Message cannot be empty"),
@@ -19,23 +29,26 @@ export default function Chat({
   userId,
   token,
   chatMessages,
+  users,
 }: {
   meetingId: string;
   userId: string | undefined;
   token: string;
   chatMessages: ChatMessage[];
+  users: User[];
 }) {
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const { messages, sendMessage } = useChat(userId ?? "", token, meetingId);
-
-  const allMessages = useMemo(
-    () => [...chatMessages, ...messages],
-    [chatMessages, messages]
+  const { messages, sendMessage, addReaction } = useChat(
+    userId ?? "",
+    token,
+    meetingId
   );
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [allMessages]);
+  const allMessages = useMemo(() => {
+    const messageMap = new Map<string, ChatMessage>();
+    chatMessages.forEach((msg) => messageMap.set(msg.id, msg));
+    messages.forEach((msg) => messageMap.set(msg.id, msg));
+    return Array.from(messageMap.values());
+  }, [chatMessages, messages]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,19 +64,38 @@ export default function Chat({
 
   return (
     <div className="flex flex-col h-full justify-between w-full">
-      <div className="overflow-y-auto h-100 border p-2 rounded">
+      <div className="overflow-y-auto border p-2 rounded flex flex-col gap-3 h-full">
         {allMessages.length > 0 ? (
-          allMessages.map((message, idx) => (
-            <div key={`${message.sender}-${idx}`} className="mb-1">
-              <strong>{message.sender === userId ? `You` : `Guest`}:</strong>{" "}
-              {message.content}
-            </div>
-          ))
+          allMessages.map((message) => {
+            const user = users.find((user) => user.id === message.sender);
+            return (
+              <Message
+                key={message.id}
+                name={user?.name}
+                surname={user?.surname}
+                message={message.content}
+                avatarUrl={user?.avatarUrl}
+                reactions={message.reactions}
+                messageId={message.id}
+                onAddReaction={addReaction}
+              />
+            );
+          })
         ) : (
-          <p className="text-center">No messages yet.</p>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <MessageCircleX />
+              </EmptyMedia>
+              <EmptyTitle>No Messages Yet</EmptyTitle>
+              <EmptyDescription>
+                Start chatting by sending your first message.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </div>
-      <div ref={messagesEndRef} />
+      <div />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 mt-2">
           <FormField

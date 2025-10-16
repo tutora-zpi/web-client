@@ -1,4 +1,4 @@
-import { ChatMessage, SentChatMessage } from "@/types/meeting";
+import { ChatMessage, Reaction, SentChatMessage } from "@/types/meeting";
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -18,7 +18,13 @@ export function useChat(userId: string, token: string, meetingID: string) {
     });
 
     socket.on("message", (msg: ChatMessage) => {
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        const exists = prev.some((m) => m.id === msg.id);
+        if (exists) {
+          return prev.map((m) => (m.id === msg.id ? msg : m));
+        }
+        return [...prev, msg];
+      });
     });
 
     return () => {
@@ -35,5 +41,15 @@ export function useChat(userId: string, token: string, meetingID: string) {
     socketRef.current?.emit("sendMessage", message);
   };
 
-  return { messages, sendMessage };
+  const addReaction = (emoji: string, messageID: string) => {
+    const reaction: Reaction = {
+      emoji,
+      chatID: meetingID,
+      userID: userId,
+      messageID: messageID,
+    };
+    socketRef.current?.emit("react", reaction);
+  };
+
+  return { messages, sendMessage, addReaction };
 }

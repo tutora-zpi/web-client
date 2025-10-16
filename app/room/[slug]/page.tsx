@@ -6,19 +6,19 @@ import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
 import { ActiveMeeting, Class, CreateChatDTO, Invitation } from "@/types/class";
-import { ChatMessage } from "@/types/meeting";
+import { ChatMessage, MeetingData } from "@/types/meeting";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LibraryBig, Power } from "lucide-react";
+import { LibraryBig } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { redirect } from "next/navigation";
+import PlannedMeetings from "@/components/room/planned-meetings";
+import PlanMeetingCalendar from "@/components/room/plan-meetings-calendar";
 
-const getUsers = async (userIds: string[]): Promise<User[]> => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-
+const getUsers = async (userIds: string[], token: string): Promise<User[]> => {
   const users = await Promise.all(
     userIds.map(async (id: string) => {
       const response = await fetch(
@@ -38,10 +38,7 @@ const getUsers = async (userIds: string[]): Promise<User[]> => {
   return users;
 };
 
-const getClass = async (id: string): Promise<Class> => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-
+const getClass = async (id: string, token: string): Promise<Class> => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_CLASS_SERVICE}/classes/${id}`,
     {
@@ -56,10 +53,10 @@ const getClass = async (id: string): Promise<Class> => {
   return classRoom;
 };
 
-const getClassInvitations = async (id: string): Promise<Invitation[]> => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-
+const getClassInvitations = async (
+  id: string,
+  token: string
+): Promise<Invitation[]> => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_CLASS_SERVICE}/invitations/classes/${id}`,
     {
@@ -74,12 +71,10 @@ const getClassInvitations = async (id: string): Promise<Invitation[]> => {
 };
 
 const getActiveMeeting = async (
-  classId: string
+  classId: string,
+  token: string
 ): Promise<ActiveMeeting | null> => {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_MEETING_SCHEDULER_SERVICE}/api/v1/meeting/${classId}`,
       {
@@ -104,11 +99,9 @@ const getActiveMeeting = async (
 
 const getChatMessages = async (
   roomId: string,
-  members: User[]
+  members: User[],
+  token: string
 ): Promise<ChatMessage[]> => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${roomId}/messages`,
     {
@@ -164,6 +157,35 @@ const createChat = async (roomId: string, members: User[]) => {
   return await response.json();
 };
 
+const getActiveMeetings = async (
+  id: string,
+  token: string
+): Promise<MeetingData[]> => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_MEETING_SCHEDULER_SERVICE}/api/v1/meeting/plan/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const meetingsData = await response.json();
+
+  if (meetingsData.success === true) {
+    const meetings = meetingsData.data.filter((meeting: MeetingData) => {
+      const finishDate = new Date(meeting.finishDate);
+      const newDateToIsoString = new Date().toISOString();
+      console.log(newDateToIsoString);
+      return finishDate > new Date(newDateToIsoString);
+    });
+
+    return meetings;
+  }
+
+  return [];
+};
+
 export default async function Page({
   params,
 }: {
@@ -174,33 +196,45 @@ export default async function Page({
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  if (!token) {
+    redirect("/login");
+  }
+
   const host = await requireAuth();
 
-  const data = await getClass(slug);
+  const data = await getClass(slug, token);
 
-  const users = await getUsers(data.members.map((member) => member.userId));
+  const users = await getUsers(
+    data.members.map((member) => member.userId),
+    token
+  );
 
-  const invitations = await getClassInvitations(slug);
+  const invitations = await getClassInvitations(slug, token);
 
-  const activeMeeting = await getActiveMeeting(slug);
+  const activeMeeting = await getActiveMeeting(slug, token);
+
+  const meetings = await getActiveMeetings(slug, token);
 
   let chatMessages: ChatMessage[] = [];
 
   if (users.length > 1) {
-    chatMessages = await getChatMessages(slug, users);
+    chatMessages = await getChatMessages(slug, users, token);
   }
+
+  console.log(meetings);
 
   return (
     <>
       <Navbar />
       <div className="m-4">
         <div className="flex justify-between gap-2 items-center">
-          <div className="flex justify-center items-center gap-2">
+          <div className="flex justify-center gap-2 items-center">
             <div>
               <LibraryBig />
             </div>
             <h1 className="text-center text-3xl font-bold">{data.name}</h1>
           </div>
+
           <div className="flex justify-center items-center gap-2">
             {users.length > 1 && !activeMeeting && (
               <StartMeetingButton
@@ -213,7 +247,11 @@ export default async function Page({
             {activeMeeting && (
               <Button asChild variant="outline" className="relative ">
                 <div>
-                  <Link href={`/meeting/${activeMeeting.meetingId}`}>Join</Link>
+                  <Link
+                    href={`/room/${slug}/meeting/${activeMeeting.meetingId}`}
+                  >
+                    Join
+                  </Link>
                   <Badge
                     variant="default"
                     className="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center p-1 rounded-full"
@@ -232,38 +270,50 @@ export default async function Page({
           </div>
         </div>
 
-        <Tabs defaultValue="chat" className="mt-2">
-          <div className="flex items-center justify-center">
-            <TabsList>
-              <TabsTrigger value="chat">Chat</TabsTrigger>
-              <TabsTrigger value="notes">Notes</TabsTrigger>
-            </TabsList>
+        <div className="flex w-full justify-around items-start mt-5">
+          <div className="flex flex-col items-center gap-2">
+            <PlannedMeetings meetings={meetings} />
+            <PlanMeetingCalendar
+              user={host}
+              friend={users.find((user) => user.id !== host.id)!}
+              classId={slug}
+            />
           </div>
-          <TabsContent
-            value="chat"
-            className="w-full flex justify-center gap-4"
-          >
-            <div className="min-h-15 w-9/12 ">
-              {users.length > 1 ? (
-                <Chat
-                  meetingId={slug}
-                  userId={host.id}
-                  token={token!}
-                  chatMessages={chatMessages}
-                />
-              ) : (
-                <div className="text-center">
-                  <EmptyRoom />
-                </div>
-              )}
+
+          <Tabs defaultValue="chat" className=" w-3/5">
+            <div className="flex items-center justify-start w-full">
+              <TabsList>
+                <TabsTrigger value="chat">Chat</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
+              </TabsList>
             </div>
-          </TabsContent>
-          <TabsContent value="notes">
-            <div className="flex-1 text-center min-h-15 bg-secondary">
-              <h2>Notes Container</h2>
-            </div>
-          </TabsContent>
-        </Tabs>
+            <TabsContent
+              value="chat"
+              className="w-full flex justify-center gap-4"
+            >
+              <div className="flex-1 h-120 min-w-full">
+                {users.length > 1 ? (
+                  <Chat
+                    meetingId={slug}
+                    userId={host.id}
+                    token={token!}
+                    chatMessages={chatMessages}
+                    users={users}
+                  />
+                ) : (
+                  <div className="text-center">
+                    <EmptyRoom />
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="notes">
+              <div className="flex-1 text-center min-h-15 bg-secondary w-full">
+                <h2>Notes Container</h2>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </>
   );

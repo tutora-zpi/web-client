@@ -1,6 +1,6 @@
 "use client";
 
-import Loading from "@/app/meeting/[slug]/loading";
+import Loading from "@/app/room/[slug]/meeting/[meetingId]/loading";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 

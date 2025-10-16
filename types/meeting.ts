@@ -5,9 +5,10 @@ export interface Meeting {
 
 export interface MeetingData {
   meetingId: string;
-  members: UserDTO[]; // -> members?: MeetingMember[] | null;
-  // timestamp?: number | null;
-  // title: string;
+  members: UserDTO[];
+  startDate: Date;
+  finishDate: Date;
+  title: string;
 }
 
 export interface UserDTO {
@@ -21,6 +22,7 @@ export interface StartMeetingDTO {
   members: UserDTO[];
   title: string;
   classId: string;
+  finishDate: string;
 }
 
 export interface ChatData {
@@ -31,7 +33,7 @@ export interface ChatMessage {
   id: string;
   sender: string;
   content: string;
-  reactions: string[];
+  reactions: Reaction[];
   answers: string[];
   sentAt: Date;
 }
@@ -46,4 +48,11 @@ export interface PeerConnection {
   id: string;
   connection: RTCPeerConnection;
   stream?: MediaStream;
+}
+
+export interface Reaction {
+  messageID: string;
+  userID: string;
+  emoji: string;
+  chatID: string;
 }

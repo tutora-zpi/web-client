@@ -13,13 +13,19 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { Button } from "../ui/button";
-import { Bell, UsersRound } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Notification } from "@/types/notification";
 import { NotificationItem } from "./notification-item";
 import { useRouter } from "next/navigation";
 
-export default function Notifications({ token }: { token: string }) {
+export default function Notifications({
+  token,
+  username,
+}: {
+  token: string;
+  username: string;
+}) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const router = useRouter();
@@ -27,24 +33,21 @@ export default function Notifications({ token }: { token: string }) {
   const handleNotification = (event: MessageEvent) => {
     const data = JSON.parse(event.data);
 
-    console.log(data);
-
     if (data.redirectionLink.includes("meeting")) {
-      const notificationDate = new Date(data.createdAt);
-      toast.info("Meeting started!", {
-        description: notificationDate.toISOString(),
+      toast.info(data.title, {
+        description: data.body,
         action: {
           label: "Join",
-          onClick: () => router.push(`meeting/${data.meetingId}`),
+          onClick: () => router.push(data.redirectionLink),
         },
         duration: 7000,
       });
     } else {
-      toast.info("You got new invitation to class!", {
-        description: `Go to invitations and start learning!`,
+      toast.info(data.title, {
+        description: `${username}${data.body}`,
         action: {
-          label: <UsersRound />,
-          onClick: () => router.push(`dashboard/invitations`),
+          label: "View",
+          onClick: () => router.push(`/dashboard/invitations`),
         },
         duration: 7000,
       });
@@ -57,7 +60,7 @@ export default function Notifications({ token }: { token: string }) {
 
     const connect = () => {
       eventSource = new EventSource(
-        `${process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE}/api/v1/stream?token=${token}`
+        `${process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE}/api/v1/notification/stream?token=${token}`
       );
 
       eventSource.addEventListener("notification", handleNotification);
@@ -139,15 +142,17 @@ export default function Notifications({ token }: { token: string }) {
             Here are the list of the notifications
           </SheetDescription>
         </SheetHeader>
-        {notifications.map((notification: Notification) => (
-          <NotificationItem
-            key={notification.id}
-            title={notification.id}
-            description={notification.title}
-            link={notification.redirectionLink}
-            dismiss={() => dismissNotification(notification.id)}
-          />
-        ))}
+        <div className="overflow-auto p-2 gap-2 flex flex-col">
+          {notifications.map((notification: Notification) => (
+            <NotificationItem
+              key={notification.id}
+              title={notification.title}
+              description={notification.body}
+              link={notification.redirectionLink}
+              dismiss={() => dismissNotification(notification.id)}
+            />
+          ))}
+        </div>
         <SheetFooter>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>

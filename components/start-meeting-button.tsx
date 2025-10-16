@@ -23,7 +23,7 @@ export function StartMeetingButton({
   const [isLoading, setIsLoading] = useState(false);
 
   const requestBody: StartMeetingDTO = {
-    // will be improved later
+    finishDate: new Date(Date.now() + 60 * 45 * 1000).toISOString(),
     title: "Temporay Meeting",
     classId: classId,
     members: [
@@ -57,7 +57,7 @@ export function StartMeetingButton({
           description: `We will redirect you shortly!`,
         });
 
-        router.push(`/meeting/${data.data.meetingId}`);
+        router.push(`/room/${classId}/meeting/${data.data.meetingId}`);
       } else {
         const error = await res.json();
         toast("Error!", {
