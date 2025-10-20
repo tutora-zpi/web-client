@@ -67,15 +67,14 @@ export default function Chat({
       <div className="overflow-y-auto border p-2 rounded flex flex-col gap-3 h-full">
         {allMessages.length > 0 ? (
           allMessages.map((message) => {
-            const user = users.find((user) => user.id === message.sender);
+            const user = users.find((user) => user.id === message.senderId);
             return (
               <Message
-                key={message.id}
+                key={message.sentAt}
                 name={user?.name}
                 surname={user?.surname}
                 message={message.content}
                 avatarUrl={user?.avatarUrl}
-                reactions={message.reactions}
                 messageId={message.id}
                 onAddReaction={addReaction}
               />

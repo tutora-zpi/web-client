@@ -15,7 +15,7 @@ const getChatMessages = async (
   token: string
 ): Promise<ChatMessage[]> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${meetingId}/messages`,
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${meetingId}/messages`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -23,6 +23,7 @@ const getChatMessages = async (
       },
     }
   );
+
   const chatData = await response.json();
   if (chatData.success === true) {
     return chatData.data;

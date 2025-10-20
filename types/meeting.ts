@@ -31,17 +31,16 @@ export interface ChatData {
 
 export interface ChatMessage {
   id: string;
-  sender: string;
+  senderId: string;
   content: string;
-  reactions: Reaction[];
-  answers: string[];
-  sentAt: Date;
+  sentAt: number;
 }
 
 export interface SentChatMessage {
-  senderID: string;
-  meetingID: string;
+  senderId: string;
+  chatId: string;
   content: string;
+  sentAt: number;
 }
 
 export interface PeerConnection {
@@ -51,8 +50,8 @@ export interface PeerConnection {
 }
 
 export interface Reaction {
-  messageID: string;
-  userID: string;
+  messageId: string;
+  userId: string;
   emoji: string;
-  chatID: string;
+  chatId: string;
 }
