@@ -115,14 +115,20 @@ export function useChat(
     wsRef.current?.send(JSON.stringify(message));
   };
 
-  const addReaction = (emoji: string, messageID: string) => {
+  const addReaction = (emoji: string, messageId: string) => {
+    const msg = messages.find((m) => m.id === messageId);
+    if (!msg) return;
+
+    const exists = msg.reactions?.some((r) => r.emoji === emoji);
+    if (exists) return;
+
     const reaction = {
       name: WSChat.ReactOnMessageWSEvent,
       data: {
         emoji,
         chatId: meetingID,
         userId: userId,
-        messageId: messageID,
+        messageId,
       },
     };
     wsRef.current?.send(JSON.stringify(reaction));
