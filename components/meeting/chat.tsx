@@ -40,7 +40,8 @@ export default function Chat({
   const { messages, sendMessage, addReaction } = useChat(
     userId ?? "",
     token,
-    meetingId
+    meetingId,
+    chatMessages
   );
 
   const allMessages = useMemo(() => {
@@ -76,6 +77,7 @@ export default function Chat({
                 message={message.content}
                 avatarUrl={user?.avatarUrl}
                 messageId={message.id}
+                reactions={message.reactions}
                 onAddReaction={addReaction}
               />
             );

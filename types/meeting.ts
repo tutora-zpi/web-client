@@ -33,6 +33,7 @@ export interface ChatMessage {
   id: string;
   senderId: string;
   content: string;
+  reactions?: Reaction[];
   sentAt: number;
 }
 
@@ -55,3 +56,5 @@ export interface Reaction {
   emoji: string;
   chatId: string;
 }
+
+export const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢"];

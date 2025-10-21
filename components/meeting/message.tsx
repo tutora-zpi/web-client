@@ -13,9 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Reaction } from "@/types/meeting";
-
-const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢"];
+import { EMOJI_OPTIONS, Reaction } from "@/types/meeting";
 
 export default function Message({
   messageId,
