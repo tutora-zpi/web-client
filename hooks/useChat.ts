@@ -1,19 +1,27 @@
+import socketManager from "@/lib/websocket/socket-manager";
 import { ChatMessage } from "@/types/meeting";
 import { WSChat, WSGeneral } from "@/types/websocket";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+
+interface ChatMessageData {
+  messageId: string;
+  senderId: string;
+  sentAt: number;
+  content: string;
+}
+
+interface ChatMessageEvent {
+  name: WSChat.SendMessageWSEvent;
+  data: ChatMessageData;
+}
 
 export function useChat(userId: string, token: string, meetingID: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  const wsRef = useRef<WebSocket | null>(null);
-
   useEffect(() => {
     const gateway = process.env.NEXT_PUBLIC_WEBSOCKET_GATEWAY!;
-    const ws = new WebSocket(`${gateway}/ws?token=${token}`);
 
-    wsRef.current = ws;
-
-    ws.onopen = () => {
+    socketManager.connect(`${gateway}/ws?token=${token}`).then(() => {
       const joinMsg = {
         name: WSGeneral.UserJoinedWSEvent,
         data: {
@@ -21,43 +29,30 @@ export function useChat(userId: string, token: string, meetingID: string) {
           userId: userId,
         },
       };
-      ws.send(JSON.stringify(joinMsg));
+      socketManager.send(joinMsg);
+    });
+
+    const handleChatMessage = (msg: any) => {
+      const chatMessage = msg.data;
+      console.log(chatMessage);
+      const chatMessageParsed: ChatMessage = {
+        id: chatMessage.messageId,
+        senderId: chatMessage.senderId,
+        sentAt: chatMessage.sentAt,
+        content: chatMessage.content,
+      };
+      setMessages((prev) => [...prev, chatMessageParsed]);
     };
 
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      switch (msg.name) {
-        case WSChat.SendMessageWSEvent: {
-          const chatMessage = msg.data;
-          const chatMessageParsed: ChatMessage = {
-            id: chatMessage.messageId,
-            senderId: chatMessage.senderId,
-            sentAt: chatMessage.sentAt,
-            content: chatMessage.content,
-          };
-          setMessages((prev) => [...prev, chatMessageParsed]);
-          break;
-        }
-        default:
-          console.warn(`Unknown event type: ${msg.name}`);
-      }
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
+    socketManager.on(WSChat.SendMessageWSEvent, handleChatMessage);
 
     const pingInterval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(`{"event":"ping"}`);
-      }
+      socketManager.send({ event: "ping" });
     }, 2900);
 
     return () => {
       clearInterval(pingInterval);
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      socketManager.off(WSChat.SendMessageWSEvent, handleChatMessage);
     };
   }, [token, meetingID, userId]);
 
@@ -71,7 +66,7 @@ export function useChat(userId: string, token: string, meetingID: string) {
         sentAt: Math.floor(Date.now() / 1000),
       },
     };
-    wsRef.current?.send(JSON.stringify(message));
+    socketManager.send(message);
   };
 
   const addReaction = (emoji: string, messageID: string) => {
@@ -84,7 +79,7 @@ export function useChat(userId: string, token: string, meetingID: string) {
         messageId: messageID,
       },
     };
-    wsRef.current?.send(JSON.stringify(reaction));
+    socketManager.send(reaction);
   };
 
   return { messages, sendMessage, addReaction };
