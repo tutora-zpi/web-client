@@ -110,7 +110,11 @@ export default async function Meeting({
               <Link href={`/room/${classId}`}>Back to class</Link>
             </Button>
             <EndMeetingButton meetingId={meetingId} classId={classId} />
-            <VoiceConnection meetingId={meetingId} />
+            <VoiceConnection
+              meetingId={meetingId}
+              token={token}
+              userId={user.id}
+            />
           </div>
         </div>
         <div className="w-4/5 md:w-1/4 flex flex-col m-2 h-140 justify-between">

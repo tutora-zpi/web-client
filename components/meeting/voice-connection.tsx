@@ -5,7 +5,15 @@ import { AudioLines, Mic, MicOff, Volume2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 
-export default function VoiceConnection({ meetingId }: { meetingId: string }) {
+export default function VoiceConnection({
+  meetingId,
+  token,
+  userId,
+}: {
+  meetingId: string;
+  token: string;
+  userId: string;
+}) {
   const [hasJoined, setHasJoined] = useState(false);
 
   const {
@@ -16,7 +24,7 @@ export default function VoiceConnection({ meetingId }: { meetingId: string }) {
     startCall,
     endCall,
     toggleMute,
-  } = useVoiceCall({ roomId: meetingId });
+  } = useVoiceCall({ roomId: meetingId, token, userId });
 
   const handleJoinCall = async () => {
     setHasJoined(true);
