@@ -10,17 +10,28 @@ const iceServers = {
   ],
 };
 
+interface QueuedCandidate {
+  candidate: RTCIceCandidateInit;
+  from: string;
+}
+
+interface QueuedOffer {
+  offer: RTCSessionDescriptionInit;
+  from: string;
+}
+
 export const useVoiceCall = ({
   roomId,
   token,
   userId,
+  autoConnect = true,
 }: {
   roomId: string;
   token: string;
   userId: string;
+  autoConnect?: boolean;
 }) => {
   const [isConnected, setIsConnected] = useState(false);
-  const [isCallActive, setIsCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [participants, setParticipants] = useState<string[]>([]);
@@ -28,12 +39,17 @@ export const useVoiceCall = ({
   const socketRef = useRef<WebSocket | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionsRef = useRef<Map<string, PeerConnection>>(new Map());
-  const localAudioRef = useRef<HTMLAudioElement | null>(null);
   const remoteAudiosRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const iceCandidateQueueRef = useRef<Map<string, QueuedCandidate[]>>(
+    new Map()
+  );
+  const queuedOffersRef = useRef<QueuedOffer[]>([]);
   const hasJoinedRef = useRef(false);
+  const isNegotiatingRef = useRef<Map<string, boolean>>(new Map());
 
   const initializeAudio = useCallback(async () => {
     try {
+      console.log("🎤 Requesting microphone access...");
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -44,16 +60,25 @@ export const useVoiceCall = ({
       });
 
       localStreamRef.current = stream;
+      console.log("✅ Microphone access granted");
 
-      if (!localAudioRef.current) {
-        localAudioRef.current = new Audio();
-        localAudioRef.current.muted = true;
-        localAudioRef.current.srcObject = stream;
+      // Przetwórz kolejkowane oferty
+      if (queuedOffersRef.current.length > 0) {
+        console.log(
+          `📦 Processing ${queuedOffersRef.current.length} queued offers`
+        );
+        const offers = [...queuedOffersRef.current];
+        queuedOffersRef.current = [];
+
+        for (const queuedOffer of offers) {
+          await processOffer(queuedOffer.offer, queuedOffer.from);
+        }
       }
 
       return stream;
     } catch (err) {
-      setError("No micro access");
+      console.error("❌ Microphone access denied:", err);
+      setError("No microphone access");
       throw err;
     }
   }, []);
@@ -64,8 +89,41 @@ export const useVoiceCall = ({
     }
   }, []);
 
+  const processQueuedCandidates = useCallback(async (peerId: string) => {
+    const queue = iceCandidateQueueRef.current.get(peerId);
+    if (!queue || queue.length === 0) return;
+
+    const peerData = peerConnectionsRef.current.get(peerId);
+    if (!peerData || !peerData.connection.remoteDescription) return;
+
+    console.log(`🧊 Processing ${queue.length} queued candidates for:`, peerId);
+
+    for (const { candidate } of queue) {
+      try {
+        await peerData.connection.addIceCandidate(candidate);
+      } catch (err) {
+        console.error("❌ Error adding queued candidate:", err);
+      }
+    }
+
+    iceCandidateQueueRef.current.delete(peerId);
+  }, []);
+
   const createPeerConnection = useCallback(
-    (peerId: string) => {
+    (peerId: string, shouldInitiate: boolean) => {
+      console.log(
+        "🔗 Creating peer connection for:",
+        peerId,
+        "shouldInitiate:",
+        shouldInitiate
+      );
+
+      const existingPeer = peerConnectionsRef.current.get(peerId);
+      if (existingPeer) {
+        console.log("♻️ Closing existing connection for:", peerId);
+        existingPeer.connection.close();
+      }
+
       const peerConnection = new RTCPeerConnection(iceServers);
 
       if (localStreamRef.current) {
@@ -75,14 +133,21 @@ export const useVoiceCall = ({
       }
 
       peerConnection.ontrack = (event) => {
+        console.log("📻 Received remote track from:", peerId);
         const [remoteStream] = event.streams;
 
-        if (!remoteAudiosRef.current.has(peerId)) {
-          const audioElement = new Audio();
-          audioElement.srcObject = remoteStream;
-          audioElement.play().catch(console.error);
-          remoteAudiosRef.current.set(peerId, audioElement);
+        const oldAudio = remoteAudiosRef.current.get(peerId);
+        if (oldAudio) {
+          oldAudio.pause();
+          oldAudio.srcObject = null;
         }
+
+        const audioElement = new Audio();
+        audioElement.srcObject = remoteStream;
+        audioElement.autoplay = true;
+        audioElement.play().catch(console.error);
+        remoteAudiosRef.current.set(peerId, audioElement);
+        console.log("🔊 Playing audio from:", peerId);
       };
 
       peerConnection.onicecandidate = (event) => {
@@ -92,6 +157,42 @@ export const useVoiceCall = ({
             to: peerId,
             candidate: event.candidate,
           });
+        } else {
+          console.log("✅ All ICE candidates sent for:", peerId);
+        }
+      };
+
+      peerConnection.onconnectionstatechange = () => {
+        console.log(
+          `🔌 Connection state [${peerId}]:`,
+          peerConnection.connectionState
+        );
+      };
+
+      peerConnection.onnegotiationneeded = async () => {
+        if (!shouldInitiate) return;
+
+        if (isNegotiatingRef.current.get(peerId)) {
+          console.log("⏭️ Already negotiating with:", peerId);
+          return;
+        }
+
+        try {
+          isNegotiatingRef.current.set(peerId, true);
+          console.log("🔄 Renegotiation needed for:", peerId);
+
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+
+          sendMessage(WSRTC.OfferWSEvent, {
+            offer,
+            from: userId,
+            to: peerId,
+          });
+        } catch (err) {
+          console.error("❌ Renegotiation error:", err);
+        } finally {
+          isNegotiatingRef.current.set(peerId, false);
         }
       };
 
@@ -105,119 +206,245 @@ export const useVoiceCall = ({
     [sendMessage, userId]
   );
 
-  const startCall = useCallback(async () => {
-    if (isCallActive || socketRef.current?.readyState === WebSocket.OPEN) {
-      console.log("Already connected, skipping...");
+  const processOffer = useCallback(
+    async (offer: RTCSessionDescriptionInit, from: string) => {
+      console.log("🔄 Processing offer from:", from);
+
+      try {
+        let peerConnection = peerConnectionsRef.current.get(from)?.connection;
+
+        if (!peerConnection) {
+          console.log("🔗 Creating peer connection as responder");
+          peerConnection = createPeerConnection(from, false);
+        }
+
+        if (peerConnection.signalingState !== "stable") {
+          console.log(
+            "⚠️ Not in stable state, rolling back:",
+            peerConnection.signalingState
+          );
+          await peerConnection.setLocalDescription({ type: "rollback" });
+        }
+
+        console.log("📝 Setting remote description...");
+        await peerConnection.setRemoteDescription(offer);
+        console.log("✅ Remote description set");
+
+        console.log("📝 Creating answer...");
+        const answer = await peerConnection.createAnswer();
+        console.log("✅ Answer created");
+
+        console.log("📝 Setting local description...");
+        await peerConnection.setLocalDescription(answer);
+        console.log("✅ Local description set");
+
+        console.log("📤 Sending answer to:", from);
+        sendMessage(WSRTC.AnswerWSEvent, {
+          answer,
+          to: from,
+          from: userId,
+        });
+        console.log("✅ Answer sent!");
+
+        await processQueuedCandidates(from);
+      } catch (err) {
+        console.error("❌ Error processing offer:", err);
+      }
+    },
+    [createPeerConnection, sendMessage, userId, processQueuedCandidates]
+  );
+
+  const handleMessage = useCallback(
+    async (event: MessageEvent) => {
+      const msg = JSON.parse(event.data);
+
+      switch (msg.name) {
+        case WSGeneral.RoomUsersWSEvent: {
+          const allUsers = msg.data.users as string[];
+          console.log("👥 Room users:", allUsers);
+
+          // Pierwszy użytkownik na liście jest initiatorem
+          const firstUser = allUsers[0];
+          const amIInitiator = firstUser === userId;
+
+          console.log(
+            `${amIInitiator ? "👑" : "👤"} I am ${
+              amIInitiator ? "INITIATOR" : "RESPONDER"
+            }`
+          );
+
+          const otherUsers = allUsers.filter((id) => id !== userId);
+          setParticipants(otherUsers);
+
+          // Jeśli jestem initiatorem, tworzę oferty dla wszystkich pozostałych
+          if (amIInitiator && otherUsers.length > 0) {
+            console.log("👑 Initiator creating offers for:", otherUsers);
+
+            for (const id of otherUsers) {
+              if (isNegotiatingRef.current.get(id)) {
+                console.log("⏭️ Skipping, already negotiating with:", id);
+                continue;
+              }
+
+              if (!peerConnectionsRef.current.has(id)) {
+                try {
+                  isNegotiatingRef.current.set(id, true);
+                  const peerConnection = createPeerConnection(id, true);
+
+                  const offer = await peerConnection.createOffer();
+                  await peerConnection.setLocalDescription(offer);
+                  console.log("✅ Sending offer to:", id);
+
+                  sendMessage(WSRTC.OfferWSEvent, {
+                    offer,
+                    from: userId,
+                    to: id,
+                  });
+                } catch (err) {
+                  console.error("❌ Error creating offer for", id, err);
+                  isNegotiatingRef.current.set(id, false);
+                }
+              }
+            }
+          } else if (!amIInitiator) {
+            console.log(
+              "👤 Responder waiting for offer from initiator:",
+              firstUser
+            );
+          }
+          break;
+        }
+
+        case WSRTC.OfferWSEvent: {
+          const { offer, from } = msg.data;
+          console.log("📥 Received offer from:", from);
+          console.log("🎤 Local stream ready?", !!localStreamRef.current);
+
+          // Jeśli nie mamy jeszcze streamu, kolejkuj ofertę
+          if (!localStreamRef.current) {
+            console.warn(
+              "⚠️ Local stream not ready, queueing offer from:",
+              from
+            );
+            queuedOffersRef.current.push({ offer, from });
+            return;
+          }
+
+          await processOffer(offer, from);
+          break;
+        }
+
+        case WSRTC.AnswerWSEvent: {
+          const { answer, from } = msg.data;
+          console.log("📥 Received answer from:", from);
+
+          try {
+            const peerData = peerConnectionsRef.current.get(from);
+
+            if (peerData) {
+              if (peerData.connection.signalingState === "have-local-offer") {
+                await peerData.connection.setRemoteDescription(answer);
+                console.log("✅ Answer set for:", from);
+
+                isNegotiatingRef.current.set(from, false);
+
+                await processQueuedCandidates(from);
+              } else {
+                console.warn(
+                  "⚠️ Wrong state for answer:",
+                  peerData.connection.signalingState
+                );
+              }
+            }
+          } catch (err) {
+            console.error("❌ Error handling answer:", err);
+          }
+          break;
+        }
+
+        case WSRTC.IceCandidateWSEvent: {
+          try {
+            const { candidate, from } = msg.data;
+            const peerData = peerConnectionsRef.current.get(from);
+
+            if (peerData) {
+              if (peerData.connection.remoteDescription) {
+                await peerData.connection.addIceCandidate(candidate);
+              } else {
+                if (!iceCandidateQueueRef.current.has(from)) {
+                  iceCandidateQueueRef.current.set(from, []);
+                }
+                iceCandidateQueueRef.current
+                  .get(from)!
+                  .push({ candidate, from });
+              }
+            }
+          } catch (err) {
+            console.error("❌ Error adding ICE candidate:", err);
+          }
+          break;
+        }
+
+        case WSGeneral.UserLeftWSEvent: {
+          const leftUserId = msg.data.userId;
+          console.log("👋 User left:", leftUserId);
+
+          const peerData = peerConnectionsRef.current.get(leftUserId);
+          if (peerData) {
+            peerData.connection.close();
+            peerConnectionsRef.current.delete(leftUserId);
+          }
+
+          const audio = remoteAudiosRef.current.get(leftUserId);
+          if (audio) {
+            audio.pause();
+            audio.srcObject = null;
+            remoteAudiosRef.current.delete(leftUserId);
+          }
+
+          iceCandidateQueueRef.current.delete(leftUserId);
+          isNegotiatingRef.current.delete(leftUserId);
+
+          setParticipants((prev) => prev.filter((id) => id !== leftUserId));
+          break;
+        }
+      }
+    },
+    [userId, createPeerConnection, sendMessage, processQueuedCandidates]
+  );
+
+  const connect = useCallback(async () => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
       return;
     }
 
-    console.log("🚀 START CALL - roomId:", roomId, "userId:", userId);
+    console.log("🚀 Connecting...", { roomId, userId });
 
     try {
       setError(null);
-
       await initializeAudio();
 
       const gateway = process.env.NEXT_PUBLIC_WEBSOCKET_GATEWAY!;
       const url = `${gateway}/ws?token=${token}`;
+
       const ws = WSConnect(url);
       socketRef.current = ws;
 
-      if (ws.readyState === WebSocket.OPEN) {
-        if (!hasJoinedRef.current) {
-          const joinMsg = {
-            name: WSGeneral.UserJoinedWSEvent,
-            data: {
-              roomId: roomId,
-              userId: userId,
-            },
-          };
-          ws.send(JSON.stringify(joinMsg));
-          hasJoinedRef.current = true;
-        }
-      }
-
       const handleOpen = () => {
+        console.log("✅ WebSocket opened");
         setIsConnected(true);
+
         if (!hasJoinedRef.current) {
-          const joinMsg = {
-            name: WSGeneral.UserJoinedWSEvent,
-            data: {
-              roomId: roomId,
-              userId: userId,
-            },
-          };
-          ws.send(JSON.stringify(joinMsg));
+          sendMessage(WSGeneral.UserJoinedWSEvent, {
+            roomId,
+            userId,
+          });
           hasJoinedRef.current = true;
-        }
-      };
-
-      const handleMessage = async (event: MessageEvent) => {
-        console.log("Received message:", event.data);
-        const msg = JSON.parse(event.data);
-        switch (msg.name) {
-          case WSGeneral.RoomUsersWSEvent: {
-            const users = msg.data.users.filter((id: string) => id !== userId);
-            setParticipants(users);
-
-            // Twórz oferty tylko dla użytkowników z mniejszym ID (polite/impolite pattern)
-            for (const id of users) {
-              if (!peerConnectionsRef.current.has(id)) {
-                createPeerConnection(id);
-
-                // Tylko user z większym ID inicjuje połączenie
-                if (userId > id) {
-                  const peerData = peerConnectionsRef.current.get(id);
-                  if (peerData) {
-                    const offer = await peerData.connection.createOffer();
-                    await peerData.connection.setLocalDescription(offer);
-                    emitOffer(offer, id, userId);
-                  }
-                }
-              }
-            }
-            break;
-          }
-          case WSRTC.OfferWSEvent: {
-            await handleOffer(msg.data.offer, msg.data.from);
-            break;
-          }
-
-          case WSRTC.AnswerWSEvent: {
-            await handleAnswer(msg.data.answer, msg.data.from);
-            break;
-          }
-
-          case WSRTC.IceCandidateWSEvent: {
-            await handleIceCandidate(msg.data.candidate, msg.data.from);
-            break;
-          }
-
-          case WSGeneral.UserLeftWSEvent: {
-            const userId = msg.data.userId;
-            const peerData = peerConnectionsRef.current.get(userId);
-            if (peerData) {
-              peerData.connection.close();
-              peerConnectionsRef.current.delete(userId);
-            }
-
-            const audio = remoteAudiosRef.current.get(userId);
-            if (audio) {
-              audio.pause();
-              remoteAudiosRef.current.delete(userId);
-            }
-
-            setParticipants((prev) => prev.filter((id) => id !== userId));
-            break;
-          }
-
-          default:
-            console.warn(`⚠️ [VOICE] Unknown event type: ${msg.name}`);
         }
       };
 
       const handleClose = () => {
-        console.log("WebSocket disconnected");
+        console.log("❌ WebSocket closed");
         setIsConnected(false);
         hasJoinedRef.current = false;
       };
@@ -226,158 +453,54 @@ export const useVoiceCall = ({
       ws.addEventListener("message", handleMessage);
       ws.addEventListener("close", handleClose);
 
-      setIsCallActive(true);
-
-      return () => {
-        ws.removeEventListener("open", handleOpen);
-        ws.removeEventListener("message", handleMessage);
-        ws.removeEventListener("close", handleClose);
-      };
+      if (ws.readyState === WebSocket.OPEN) {
+        handleOpen();
+      }
     } catch (err) {
+      console.error("❌ Connection error:", err);
       setError("Cannot start the call");
-      console.error("Error starting call:", err);
     }
-  }, [
-    roomId,
-    token,
-    userId,
-    initializeAudio,
-    createPeerConnection,
-    sendMessage,
-  ]);
+  }, [roomId, token, userId, initializeAudio, handleMessage, sendMessage]);
 
-  const emitOffer = (
-    offer: RTCSessionDescriptionInit,
-    to: string,
-    from: string
-  ) => {
-    const message = {
-      name: WSRTC.OfferWSEvent,
-      data: {
-        offer,
-        from,
-        to,
-      },
-    };
-    socketRef.current?.send(JSON.stringify(message));
-  };
+  const disconnect = useCallback(() => {
+    console.log("🛑 Disconnecting...");
 
-  const handleOffer = async (
-    offer: RTCSessionDescriptionInit,
-    from: string
-  ) => {
-    let peerConnection = peerConnectionsRef.current.get(from)?.connection;
-
-    if (!peerConnection) {
-      peerConnection = createPeerConnection(from);
-    }
-
-    // Jeśli mamy konflikt (obie strony wysłały offer), użyj rollback
-    if (peerConnection.signalingState !== "stable") {
-      console.log("Collision detected, rolling back...");
-
-      // Polite peer (z mniejszym ID) robi rollback
-      if (userId < from) {
-        await peerConnection.setLocalDescription({ type: "rollback" });
-      } else {
-        // Impolite peer ignoruje przychodzącą ofertę
-        return;
-      }
-    }
-
-    await peerConnection.setRemoteDescription(offer);
-
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-
-    const message = {
-      name: WSRTC.AnswerWSEvent,
-      data: {
-        answer,
-        to: from,
-        from: userId,
-      },
-    };
-    socketRef.current?.send(JSON.stringify(message));
-  };
-
-  const handleAnswer = async (
-    answer: RTCSessionDescriptionInit,
-    from: string
-  ) => {
-    const peerData = peerConnectionsRef.current.get(from);
-    if (peerData) {
-      const state = peerData.connection.signalingState;
-
-      if (state === "have-local-offer") {
-        await peerData.connection.setRemoteDescription(answer);
-      } else {
-        console.warn(
-          `Cannot set remote answer - connection in state: ${state}`
-        );
-      }
-    }
-  };
-
-  const handleIceCandidate = async (
-    candidate: RTCIceCandidateInit,
-    from: string
-  ) => {
-    const peerData = peerConnectionsRef.current.get(from);
-    if (peerData) {
-      await peerData.connection.addIceCandidate(candidate);
-    }
-  };
-
-  const endCall = useCallback(() => {
-    // Wyślij informację o opuszczeniu pokoju
     if (socketRef.current?.readyState === WebSocket.OPEN) {
-      const leaveMsg = {
-        name: WSGeneral.UserLeftWSEvent,
-        data: {
-          roomId: roomId,
-          userId: userId,
-        },
-      };
-      socketRef.current.send(JSON.stringify(leaveMsg));
+      sendMessage(WSGeneral.UserLeftWSEvent, {
+        roomId,
+        userId,
+      });
     }
 
-    // Zamknij wszystkie peer connections
     peerConnectionsRef.current.forEach(({ connection }) => {
       connection.close();
     });
     peerConnectionsRef.current.clear();
 
-    // Zatrzymaj lokalne ścieżki audio
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;
     }
 
-    // Zatrzymaj zdalne audio
     remoteAudiosRef.current.forEach((audio) => {
       audio.pause();
       audio.srcObject = null;
     });
     remoteAudiosRef.current.clear();
 
-    // Zamknij WebSocket
     if (socketRef.current) {
       socketRef.current = null;
     }
 
-    // Zresetuj stan lokalnego audio
-    if (localAudioRef.current) {
-      localAudioRef.current.srcObject = null;
-      localAudioRef.current = null;
-    }
+    iceCandidateQueueRef.current.clear();
+    queuedOffersRef.current = [];
+    isNegotiatingRef.current.clear();
 
-    setIsCallActive(false);
     setIsConnected(false);
     setParticipants([]);
     setIsMuted(false);
     hasJoinedRef.current = false;
-  }, [roomId, userId]);
+  }, [roomId, userId, sendMessage]);
 
   const toggleMute = useCallback(() => {
     if (localStreamRef.current) {
@@ -385,26 +508,28 @@ export const useVoiceCall = ({
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         setIsMuted(!audioTrack.enabled);
+        console.log("🎤 Muted:", !audioTrack.enabled);
       }
     }
   }, []);
 
   useEffect(() => {
+    if (autoConnect) {
+      connect();
+    }
+
     return () => {
-      if (isCallActive) {
-        endCall();
-      }
+      disconnect();
     };
-  }, [isCallActive, endCall]);
+  }, [autoConnect, connect, disconnect]);
 
   return {
     isConnected,
-    isCallActive,
     isMuted,
     error,
     participants,
-    startCall,
-    endCall,
+    connect,
+    disconnect,
     toggleMute,
   };
 };
