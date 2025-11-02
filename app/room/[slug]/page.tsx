@@ -103,7 +103,7 @@ const getChatMessages = async (
   token: string
 ): Promise<ChatMessage[]> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${roomId}/messages`,
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${roomId}/messages`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -112,7 +112,7 @@ const getChatMessages = async (
     }
   );
   const chatData = await response.json();
-  if (chatData.success === true) {
+  if (chatData.data) {
     return chatData.data;
   } else {
     await createChat(roomId, members);
@@ -125,25 +125,12 @@ const createChat = async (roomId: string, members: User[]) => {
   const token = cookieStore.get("token")?.value;
 
   const requestBody: CreateChatDTO = {
-    roomID: roomId,
-    members: [
-      {
-        id: members[0].id,
-        firstName: members[0].name,
-        lastName: members[0].surname,
-        avatarURL: members[0].avatarUrl,
-      },
-      {
-        id: members[1].id,
-        firstName: members[1].name,
-        lastName: members[1].surname,
-        avatarURL: members[1].avatarUrl,
-      },
-    ],
+    classId: roomId,
+    memberIds: [members[0].id, members[1].id],
   };
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/general`,
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/general`,
     {
       method: "POST",
       headers: {
@@ -171,6 +158,8 @@ const getActiveMeetings = async (
     }
   );
   const meetingsData = await response.json();
+
+  console.log(meetingsData);
 
   if (meetingsData.success === true) {
     const meetings = meetingsData.data.filter((meeting: MeetingData) => {
@@ -237,11 +226,7 @@ export default async function Page({
 
           <div className="flex justify-center items-center gap-2">
             {users.length > 1 && !activeMeeting && (
-              <StartMeetingButton
-                user={host}
-                friend={users.find((user) => user.id !== host.id)!}
-                classId={slug}
-              />
+              <StartMeetingButton members={users} classId={slug} />
             )}
 
             {activeMeeting && (

@@ -25,14 +25,14 @@ export default function PlannedMeetings({
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
-    <div>
+    <div className="w-full">
       {meetings.length > 0 ? (
         <Collapsible
           open={isOpen}
           onOpenChange={setIsOpen}
-          className="flex w-fit flex-col gap-2 "
+          className="flex w-full flex-col gap-2"
         >
-          <div className="flex items-center justify-between gap-4 px-4">
+          <div className="flex items-center justify-between gap-2 px-2">
             <h4 className="text-sm font-semibold">
               You got {meetings.length} upcoming meetings
             </h4>

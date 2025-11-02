@@ -13,9 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Reaction } from "@/types/meeting";
-
-const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢"];
+import { EMOJI_OPTIONS, Reaction } from "@/types/meeting";
 
 export default function Message({
   messageId,
@@ -52,9 +50,9 @@ export default function Message({
     <div className="flex w-full max-w-lg flex-col">
       <Item variant="outline" className="relative">
         {Object.keys(groupedReactions).length > 0 && (
-          <div className="absolute -top-2 -right-2 flex items-center p-1 rounded-md bg-secondary">
+          <div className="absolute -top-2 -right-2 flex items-center p-1 rounded-md bg-secondary gap-1">
             {Object.entries(groupedReactions).map(([emoji, count]) => (
-              <span key={emoji} className="flex items-center gap-1 text-xs">
+              <span key={emoji} className="flex items-center text-xs">
                 <span>{emoji}</span>
                 {count > 1 && (
                   <span className="text-xs font-medium leading-none">

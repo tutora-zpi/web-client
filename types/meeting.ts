@@ -31,28 +31,24 @@ export interface ChatData {
 
 export interface ChatMessage {
   id: string;
-  sender: string;
+  senderId: string;
   content: string;
-  reactions: Reaction[];
-  answers: string[];
-  sentAt: Date;
+  reactions?: Reaction[];
+  sentAt: number;
 }
 
 export interface SentChatMessage {
-  senderID: string;
-  meetingID: string;
+  senderId: string;
+  chatId: string;
   content: string;
-}
-
-export interface PeerConnection {
-  id: string;
-  connection: RTCPeerConnection;
-  stream?: MediaStream;
+  sentAt: number;
 }
 
 export interface Reaction {
-  messageID: string;
-  userID: string;
+  messageId: string;
+  userId: string;
   emoji: string;
-  chatID: string;
+  chatId: string;
 }
+
+export const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢"];

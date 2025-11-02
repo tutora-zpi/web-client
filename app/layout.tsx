@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { tutoraInfo } from "@/lib/config";
 import { Toaster } from "sonner";
+import QueryProvider from "@/components/providers/query-provider";
 
 export const metadata: Metadata = {
   title: tutoraInfo.name,
@@ -24,7 +25,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <QueryProvider>{children}</QueryProvider>
           <Toaster />
         </ThemeProvider>
       </body>

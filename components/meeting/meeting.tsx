@@ -15,7 +15,7 @@ const getChatMessages = async (
   token: string
 ): Promise<ChatMessage[]> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${meetingId}/messages`,
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${meetingId}/messages`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -23,6 +23,7 @@ const getChatMessages = async (
       },
     }
   );
+
   const chatData = await response.json();
   if (chatData.success === true) {
     return chatData.data;
@@ -105,11 +106,18 @@ export default async function Meeting({
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
           <Board meetingId={meetingId} />
           <div className="flex justify-between items-center mt-2">
-            <Button asChild variant="secondary" className="mt-2">
-              <Link href={`/room/${classId}`}>Back to class</Link>
-            </Button>
-            <EndMeetingButton meetingId={meetingId} classId={classId} />
-            <VoiceConnection meetingId={meetingId} />
+            <div className="flex gap-2 items-center">
+              <EndMeetingButton meetingId={meetingId} classId={classId} />
+              <Button asChild variant="secondary">
+                <Link href={`/room/${classId}`}>Back to class</Link>
+              </Button>
+            </div>
+            <VoiceConnection
+              meetingId={meetingId}
+              token={token}
+              userId={user.id}
+              meetingUsers={users}
+            />
           </div>
         </div>
         <div className="w-4/5 md:w-1/4 flex flex-col m-2 h-140 justify-between">
