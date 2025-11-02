@@ -1,8 +1,8 @@
 "use client";
 
-import { useVoiceCall } from "@/hooks/useVoiceCall";
 import { Mic, MicOff } from "lucide-react";
 import { Button } from "../ui/button";
+import { useWebRTC } from "@/hooks/useVoiceCall";
 
 export default function VoiceConnection({
   meetingId,
@@ -13,12 +13,11 @@ export default function VoiceConnection({
   token: string;
   userId: string;
 }) {
-  const { isConnected, isMuted, participants, toggleMute } = useVoiceCall({
-    roomId: meetingId,
-    token,
+  const { isConnected, isMuted, participants, toggleMute } = useWebRTC(
     userId,
-    autoConnect: true,
-  });
+    token,
+    meetingId
+  );
 
   return (
     <div className="flex flex-col gap-2 mt-2">

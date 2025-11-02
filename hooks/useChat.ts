@@ -19,119 +19,99 @@ export function useChat(
     const ws = WSConnect(url);
     wsRef.current = ws;
 
-    if (ws.readyState === WebSocket.OPEN) {
-      if (!hasJoinedRef.current) {
-        const joinMsg = {
-          name: WSGeneral.UserJoinedWSEvent,
-          data: {
-            roomId: meetingID,
-            userId: userId,
-          },
-        };
-        ws.send(JSON.stringify(joinMsg));
-        hasJoinedRef.current = true;
-      }
-    }
-
     const handleOpen = () => {
-      if (!hasJoinedRef.current) {
-        const joinMsg = {
-          name: WSGeneral.UserJoinedWSEvent,
-          data: {
-            roomId: meetingID,
-            userId: userId,
-          },
-        };
-        ws.send(JSON.stringify(joinMsg));
+      if (hasJoinedRef.current) return;
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({
+            name: WSGeneral.UserJoinedWSEvent,
+            data: { roomId: meetingID, userId },
+          })
+        );
         hasJoinedRef.current = true;
       }
+    };
+
+    const handleLeave = () => {
+      if (!hasJoinedRef.current) return;
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            name: WSGeneral.UserLeftWSEvent,
+            data: { roomId: meetingID, userId },
+          })
+        );
+      }
+      hasJoinedRef.current = false;
     };
 
     const handleMessage = (event: MessageEvent) => {
       const msg = JSON.parse(event.data);
       switch (msg.name) {
         case WSChat.SendMessageWSEvent: {
-          const chatMessage = msg.data;
-          const chatMessageParsed: ChatMessage = {
-            id: chatMessage.messageId,
-            senderId: chatMessage.senderId,
-            sentAt: chatMessage.sentAt,
-            content: chatMessage.content,
+          const d = msg.data;
+          const chatMessage: ChatMessage = {
+            id: d.messageId,
+            senderId: d.senderId,
+            sentAt: d.sentAt,
+            content: d.content,
           };
-          setMessages((prev) => [...prev, chatMessageParsed]);
+          setMessages((prev) => [...prev, chatMessage]);
           break;
         }
         case WSChat.ReactOnMessageWSEvent: {
           const reaction: Reaction = msg.data;
-
           setMessages((prev) =>
-            prev.map((m) => {
-              if (m.id !== reaction.messageId) return m;
-
-              const existing = Array.isArray(m.reactions) ? m.reactions : [];
-              return { ...m, reactions: [...existing, reaction] };
-            })
+            prev.map((m) =>
+              m.id !== reaction.messageId
+                ? m
+                : { ...m, reactions: [...(m.reactions ?? []), reaction] }
+            )
           );
           break;
         }
-        default:
-          console.warn(`Unknown event type: ${msg.name}`);
       }
-    };
-
-    const handleClose = () => {
-      console.log("WebSocket disconnected");
-      hasJoinedRef.current = false;
     };
 
     ws.addEventListener("open", handleOpen);
     ws.addEventListener("message", handleMessage);
-    ws.addEventListener("close", handleClose);
 
-    // const pingInterval = setInterval(() => {
-    //   if (ws.readyState === WebSocket.OPEN) {
-    //     ws.send(`{"event":"ping"}`);
-    //   }
-    // }, 2900);
+    handleOpen();
 
     return () => {
-      // clearInterval(pingInterval);
+      handleLeave();
+
       ws.removeEventListener("open", handleOpen);
       ws.removeEventListener("message", handleMessage);
-      ws.removeEventListener("close", handleClose);
     };
   }, [token, meetingID, userId]);
 
   const sendMessage = (content: string) => {
-    const message = {
-      name: WSChat.SendMessageWSEvent,
-      data: {
-        content,
-        senderId: userId,
-        chatId: meetingID,
-        sentAt: Math.floor(Date.now() / 1000),
-      },
-    };
-    wsRef.current?.send(JSON.stringify(message));
+    wsRef.current?.send(
+      JSON.stringify({
+        name: WSChat.SendMessageWSEvent,
+        data: {
+          content,
+          senderId: userId,
+          chatId: meetingID,
+          sentAt: Math.floor(Date.now() / 1000),
+        },
+      })
+    );
   };
 
   const addReaction = (emoji: string, messageId: string) => {
     const msg = messages.find((m) => m.id === messageId);
     if (!msg) return;
-
     const exists = msg.reactions?.some((r) => r.emoji === emoji);
     if (exists) return;
 
-    const reaction = {
-      name: WSChat.ReactOnMessageWSEvent,
-      data: {
-        emoji,
-        chatId: meetingID,
-        userId: userId,
-        messageId,
-      },
-    };
-    wsRef.current?.send(JSON.stringify(reaction));
+    wsRef.current?.send(
+      JSON.stringify({
+        name: WSChat.ReactOnMessageWSEvent,
+        data: { emoji, chatId: meetingID, userId, messageId },
+      })
+    );
   };
 
   return { messages, sendMessage, addReaction };
