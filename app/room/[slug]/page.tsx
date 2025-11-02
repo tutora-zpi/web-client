@@ -226,11 +226,7 @@ export default async function Page({
 
           <div className="flex justify-center items-center gap-2">
             {users.length > 1 && !activeMeeting && (
-              <StartMeetingButton
-                user={host}
-                friend={users.find((user) => user.id !== host.id)!}
-                classId={slug}
-              />
+              <StartMeetingButton members={users} classId={slug} />
             )}
 
             {activeMeeting && (
