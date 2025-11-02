@@ -44,12 +44,6 @@ export interface SentChatMessage {
   sentAt: number;
 }
 
-export interface PeerConnection {
-  id: string;
-  connection: RTCPeerConnection;
-  stream?: MediaStream;
-}
-
 export interface Reaction {
   messageId: string;
   userId: string;
