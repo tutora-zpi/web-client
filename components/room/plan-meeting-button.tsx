@@ -2,13 +2,23 @@
 
 import { Button } from "@/components/ui/button";
 import { User } from "@/types/user";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarCheck } from "lucide-react";
 
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 
 import { toast } from "sonner";
 
-export function PlanMeetingButton({
+import { z } from "zod";
+import { Input } from "../ui/input";
+import { Form, FormControl, FormField, FormItem } from "../ui/form";
+
+const formSchema = z.object({
+  title: z.string().min(2),
+});
+
+export function PlanMeetingForm({
   friend,
   user,
   classId,
@@ -25,7 +35,14 @@ export function PlanMeetingButton({
 }) {
   const router = useRouter();
 
-  const planMeeting = async () => {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+    },
+  });
+
+  const planMeeting = async (values: z.infer<typeof formSchema>) => {
     if (!date) return;
 
     const [startHour, startMin, startSec] = startTime.split(":").map(Number);
@@ -40,7 +57,7 @@ export function PlanMeetingButton({
     const requestBody = {
       finishDate,
       startDate,
-      title: "Temporary Meeting",
+      title: values.title,
       classId,
       members: [
         {
@@ -65,27 +82,49 @@ export function PlanMeetingButton({
       });
 
       if (res.ok) {
-        toast("Meeting Planned!", {
+        toast.success("Meeting Planned!", {
           description: `Meeting scheduled!`,
+          richColors: true,
         });
 
         router.refresh();
       } else {
-        const error = await res.json();
-        toast("Error!", {
-          description: error,
+        const error = await res.text();
+        toast.error("Error!", {
+          description: JSON.stringify(error),
+          richColors: true,
         });
       }
     } catch (error) {
-      toast("Error starting meeting!", {
+      toast.error("Error starting meeting!", {
         description: error as string,
+        richColors: true,
       });
     }
   };
 
   return (
-    <Button onClick={planMeeting} variant="outline">
-      <CalendarCheck />
-    </Button>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(planMeeting)}
+        className="flex min-w-full items-center gap-2 justify-center"
+      >
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormControl>
+                <Input placeholder="title" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" variant="outline">
+          <CalendarCheck />
+        </Button>
+      </form>
+    </Form>
   );
 }

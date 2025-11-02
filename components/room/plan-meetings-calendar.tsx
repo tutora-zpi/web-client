@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { User } from "@/types/user";
-import { PlanMeetingButton } from "./plan-meeting-button";
+import { PlanMeetingForm } from "./plan-meeting-button";
 
 export default function PlanMeetingCalendar({
   friend,
@@ -42,36 +42,38 @@ export default function PlanMeetingCalendar({
             className="bg-transparent p-0 [--cell-size:--spacing(10.5)]"
           />
         </CardContent>
-        <CardFooter className="flex gap-2 border-t px-4 !pt-4 *:[div]:w-full">
-          <div>
-            <Label htmlFor="time-from" className="sr-only">
-              Start Time
-            </Label>
-            <Input
-              id="time-from"
-              type="time"
-              step="1"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-            />
-          </div>
-          <span>-</span>
-          <div>
-            <Label htmlFor="time-to" className="sr-only">
-              End Time
-            </Label>
-            <Input
-              id="time-to"
-              type="time"
-              step="1"
-              value={finishTime}
-              onChange={(e) => setFinishTime(e.target.value)}
-              className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-            />
+        <CardFooter className="flex gap-2 border-t px-4 !pt-4 *:[div]:w-full flex-col">
+          <div className="flex gap-2 *:[div]:w-full items-center">
+            <div>
+              <Label htmlFor="time-from" className="sr-only">
+                Start Time
+              </Label>
+              <Input
+                id="time-from"
+                type="time"
+                step="1"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+              />
+            </div>
+            <span>-</span>
+            <div>
+              <Label htmlFor="time-to" className="sr-only">
+                End Time
+              </Label>
+              <Input
+                id="time-to"
+                type="time"
+                step="1"
+                value={finishTime}
+                onChange={(e) => setFinishTime(e.target.value)}
+                className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+              />
+            </div>
           </div>
 
-          <PlanMeetingButton
+          <PlanMeetingForm
             user={user}
             friend={friend}
             classId={classId}
