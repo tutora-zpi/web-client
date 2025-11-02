@@ -103,7 +103,9 @@ export function useChat(
   const addReaction = (emoji: string, messageId: string) => {
     const msg = messages.find((m) => m.id === messageId);
     if (!msg) return;
-    const exists = msg.reactions?.some((r) => r.emoji === emoji);
+    const exists = msg.reactions?.some(
+      (r) => r.emoji === emoji && r.userId === userId
+    );
     if (exists) return;
 
     wsRef.current?.send(
