@@ -26,7 +26,7 @@ export default function VoiceConnection({
           <>
             <div className="w-3 h-3 bg-green-500 rounded-full" />
             <span className="text-sm text-gray-400">
-              {participants.length + 1}{" "}
+              {participants.length}{" "}
               {participants.length === 0 ? "participant" : "participants"}
             </span>
           </>
