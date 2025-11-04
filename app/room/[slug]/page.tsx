@@ -258,11 +258,7 @@ export default async function Page({
         <div className="flex w-full justify-around items-start mt-5">
           <div className="flex flex-col items-center gap-2">
             <PlannedMeetings meetings={meetings} />
-            <PlanMeetingCalendar
-              user={host}
-              friend={users.find((user) => user.id !== host.id)!}
-              classId={slug}
-            />
+            <PlanMeetingCalendar users={users} classId={slug} />
           </div>
 
           <Tabs defaultValue="chat" className=" w-3/5">
