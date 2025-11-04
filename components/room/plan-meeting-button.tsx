@@ -19,15 +19,13 @@ const formSchema = z.object({
 });
 
 export function PlanMeetingForm({
-  friend,
-  user,
+  members,
   classId,
   date,
   startTime,
   finishTime,
 }: {
-  friend: User;
-  user: User;
+  members: User[];
   classId: string;
   date: Date | undefined;
   startTime: string;
@@ -59,20 +57,12 @@ export function PlanMeetingForm({
       startDate,
       title: values.title,
       classId,
-      members: [
-        {
-          id: user.id,
-          firstName: user.name,
-          lastName: user.surname,
-          avatarURL: user.avatarUrl,
-        },
-        {
-          id: friend.id,
-          firstName: friend.name,
-          lastName: friend.surname,
-          avatarURL: friend.avatarUrl,
-        },
-      ],
+      members: members.map((user: User) => ({
+        id: user.id,
+        firstName: user.name,
+        lastName: user.surname,
+        avatarURL: user.avatarUrl,
+      })),
     };
 
     try {

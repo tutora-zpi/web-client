@@ -126,7 +126,7 @@ const createChat = async (roomId: string, members: User[]) => {
 
   const requestBody: CreateChatDTO = {
     classId: roomId,
-    memberIds: [members[0].id, members[1].id],
+    memberIds: members.map((member) => member.id),
   };
 
   const response = await fetch(
