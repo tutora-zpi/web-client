@@ -34,6 +34,7 @@ export interface ChatMessage {
   senderId: string;
   content: string;
   reactions?: Reaction[];
+  fileLink?: string;
   sentAt: number;
 }
 

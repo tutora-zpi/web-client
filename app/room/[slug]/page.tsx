@@ -159,8 +159,6 @@ const getActiveMeetings = async (
   );
   const meetingsData = await response.json();
 
-  console.log(meetingsData);
-
   if (meetingsData.success === true) {
     const meetings = meetingsData.data.filter((meeting: MeetingData) => {
       const finishDate = new Date(meeting.finishDate);

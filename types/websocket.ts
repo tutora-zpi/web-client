@@ -14,6 +14,7 @@ export enum WSChat {
   ReplyOnMessageWSEvent = "ReplyOnMessageWSEvent",
   SendMessageWSEvent = "SendMessageWSEvent",
   UserTypingWSEvent = "UserTypingWSEvent",
+  SendFileMessageEvent = "SendFileMessageEvent",
 }
 
 export enum WSBoard {

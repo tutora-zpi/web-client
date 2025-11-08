@@ -8,7 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Empty,
   EmptyDescription,
@@ -16,9 +16,10 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "../ui/empty";
-import { MessageCircleX } from "lucide-react";
+import { MessageCircleX, Paperclip, ArrowUp } from "lucide-react";
 import Message from "./message";
 import { User } from "@/types/user";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   message: z.string().min(1, "Message cannot be empty"),
@@ -44,6 +45,8 @@ export default function Chat({
     chatMessages
   );
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const allMessages = useMemo(() => {
     const messageMap = new Map<string, ChatMessage>();
     chatMessages.forEach((msg) => messageMap.set(msg.id, msg));
@@ -58,8 +61,48 @@ export default function Chat({
     },
   });
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadFile = async (message: string) => {
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("content", message);
+    formData.append("senderId", userId ?? "");
+    formData.append("chatId", meetingId);
+    formData.append("sentAt", Math.floor(Date.now() / 1000).toString());
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${meetingId}/upload-file`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to upload file");
+      }
+      toast.success("File uploaded successfully");
+      setSelectedFile(null);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Failed to upload file");
+      setSelectedFile(null);
+    }
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    sendMessage(values.message);
+    if (selectedFile) {
+      uploadFile(values.message);
+    } else {
+      sendMessage(values.message);
+    }
+
     form.reset();
   }
 
@@ -78,6 +121,7 @@ export default function Chat({
                 avatarUrl={user?.avatarUrl}
                 messageId={message.id}
                 reactions={message.reactions}
+                fileLink={message.fileLink}
                 onAddReaction={addReaction}
               />
             );
@@ -98,21 +142,57 @@ export default function Chat({
       </div>
       <div />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 mt-2">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-2 mt-2 bg-secondary p-2 rounded-sm"
+        >
           <FormField
             control={form.control}
             name="message"
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input placeholder="type here." {...field} />
+                  <Input
+                    placeholder="type here."
+                    {...field}
+                    className="border-none active:border-none  focus-visible:ring-0"
+                    autoFocus
+                  />
                 </FormControl>
               </FormItem>
             )}
           />
-          <Button className="w-full" type="submit">
-            Send message
-          </Button>
+          <div className="flex gap-2">
+            <div className="flex">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 10_000_000) {
+                      toast.error("File too large. Maximum size is 10MB");
+                      setSelectedFile(null);
+                    }
+                    setSelectedFile(file);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip />
+                {selectedFile ? selectedFile.name : ""}
+              </Button>
+            </div>
+            <Button type="submit" size="sm">
+              <ArrowUp />
+            </Button>
+          </div>
         </form>
       </Form>
     </div>

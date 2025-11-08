@@ -48,13 +48,15 @@ export function useChat(
     const handleMessage = (event: MessageEvent) => {
       const msg = JSON.parse(event.data);
       switch (msg.name) {
-        case WSChat.SendMessageWSEvent: {
+        case WSChat.SendMessageWSEvent:
+        case WSChat.SendFileMessageEvent: {
           const d = msg.data;
           const chatMessage: ChatMessage = {
             id: d.messageId,
             senderId: d.senderId,
             sentAt: d.sentAt,
             content: d.content,
+            fileLink: d.fileLink ? d.fileLink : undefined,
           };
           setMessages((prev) => [...prev, chatMessage]);
           break;
