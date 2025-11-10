@@ -103,7 +103,7 @@ const getChatMessages = async (
   token: string
 ): Promise<ChatMessage[]> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${roomId}/messages`,
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${roomId}/messages`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -130,7 +130,7 @@ const createChat = async (roomId: string, members: User[]) => {
   };
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/general`,
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/general`,
     {
       method: "POST",
       headers: {

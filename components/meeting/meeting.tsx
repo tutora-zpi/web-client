@@ -15,7 +15,7 @@ const getChatMessages = async (
   token: string
 ): Promise<ChatMessage[]> => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${meetingId}/messages`,
+    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${meetingId}/messages`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -104,7 +104,7 @@ export default async function Meeting({
       </div>
       <div className="flex md:flex-row md:justify-between flex-col justify-center items-center mt-2">
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
-          <Board meetingId={meetingId} />
+          <Board meetingId={meetingId} token={token} userId={user.id} />
           <div className="flex justify-between items-center mt-2">
             <div className="flex gap-2 items-center">
               <EndMeetingButton meetingId={meetingId} classId={classId} />

@@ -1,20 +1,36 @@
 "use client";
 import { Excalidraw } from "@excalidraw/excalidraw";
-import { io, Socket } from "socket.io-client";
 import "@excalidraw/excalidraw/index.css";
-import { useCallback, useEffect, useState, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useRef,
+  MemoExoticComponent,
+  JSX,
+} from "react";
 import {
   AppState,
   ExcalidrawImperativeAPI,
+  ExcalidrawProps,
 } from "@excalidraw/excalidraw/types";
 import {
   OrderedExcalidrawElement,
   Theme,
 } from "@excalidraw/excalidraw/element/types";
-import { ParamValue } from "next/dist/server/request/params";
 import { useTheme } from "next-themes";
+import { WSConnect } from "@/lib/websocket/ws-connect";
+import { WSBoard, WSGeneral } from "@/types/websocket";
 
-const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
+const ExcalidrawWrapper = ({
+  meetingId,
+  token,
+  userId,
+}: {
+  meetingId: string;
+  token: string;
+  userId: string;
+}) => {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
 
@@ -22,10 +38,11 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
 
   const { theme: themeMode } = useTheme();
 
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
   const elementsRef = useRef<readonly OrderedExcalidrawElement[] | null>(null);
-  const appStateRef = useRef<AppState | null>(null);
   const isUpdatingFromSocketRef = useRef(false);
+  const hasJoinedRef = useRef(false);
+  const excalidrawContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!themeMode) return;
@@ -42,79 +59,116 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
       }
 
       elementsRef.current = elements;
-      appStateRef.current = appState;
     },
     [excalidrawAPI]
   );
 
   useEffect(() => {
     const handlePointerUp = () => {
-      if (!elementsRef.current || !appStateRef.current || !socketRef.current)
-        return;
+      if (!elementsRef.current || !socketRef.current) return;
 
-      socketRef.current.emit("board:update", {
-        sessionId,
-        data: {
-          elements: elementsRef.current,
-          appStateRef: appStateRef.current,
-        },
-      });
+      socketRef.current.send(
+        JSON.stringify({
+          name: WSBoard.BoardUpdateWSEvent,
+          data: {
+            meetingId,
+            data: {
+              elements: elementsRef.current,
+            },
+          },
+        })
+      );
 
       elementsRef.current = null;
-      appStateRef.current = null;
     };
 
-    document.addEventListener("pointerup", handlePointerUp);
+    const container = excalidrawContainerRef.current;
+    if (!container) return;
+
+    container.addEventListener("pointerup", handlePointerUp);
 
     return () => {
-      document.removeEventListener("pointerup", handlePointerUp);
+      container.removeEventListener("pointerup", handlePointerUp);
     };
   }, []);
 
   useEffect(() => {
     if (!excalidrawAPI) return;
 
-    socketRef.current = io(process.env.NEXT_PUBLIC_BOARD_SERVICE);
+    const gateway = process.env.NEXT_PUBLIC_WEBSOCKET_GATEWAY!;
+    const url = `${gateway}/ws?token=${token}`;
+    const ws = WSConnect(url);
+    socketRef.current = ws;
 
-    const socket = socketRef.current;
-
-    socket.on("connect", () => {
-      socket.emit("join-session", { sessionId });
-    });
-
-    socket.on("board:sync", (payload) => {
-      const { elements, appState } = payload.data ?? payload;
-
-      try {
-        isUpdatingFromSocketRef.current = true;
-        excalidrawAPI.updateScene({
-          elements: elements ?? [],
-          appState: appState ?? {},
-        });
-
-        isUpdatingFromSocketRef.current = false;
-      } catch (error) {
-        console.error("Error updating scene:", error);
-        isUpdatingFromSocketRef.current = false;
+    const handleOpen = () => {
+      if (hasJoinedRef.current) return;
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({
+            name: WSGeneral.UserJoinedWSEvent,
+            data: { roomId: meetingId, userId },
+          })
+        );
+        hasJoinedRef.current = true;
       }
-    });
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      const msg = JSON.parse(event.data);
+      switch (msg.name) {
+        case WSBoard.BoardUpdateWSEvent: {
+          const d = msg.data;
+          console.log(d.data);
+          const { elements, appState } = d.data;
+          try {
+            isUpdatingFromSocketRef.current = true;
+            excalidrawAPI.updateScene({
+              elements: elements ?? [],
+            });
+
+            isUpdatingFromSocketRef.current = false;
+          } catch (error) {
+            console.error("Error updating scene:", error);
+            isUpdatingFromSocketRef.current = false;
+          }
+          break;
+        }
+      }
+    };
+
+    const handleLeave = () => {
+      if (!hasJoinedRef.current) return;
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        socketRef.current.send(
+          JSON.stringify({
+            name: WSGeneral.UserLeftWSEvent,
+            data: { roomId: meetingId, userId },
+          })
+        );
+      }
+      hasJoinedRef.current = false;
+    };
+
+    ws.addEventListener("open", handleOpen);
+    ws.addEventListener("message", handleMessage);
+
+    handleOpen();
 
     return () => {
-      socket.off("connect");
-      socket.off("board:sync");
-      socket.off("disconnect");
-      socket.off("connect_error");
-      socketRef.current?.disconnect();
-      socketRef.current = null;
+      handleLeave();
+      ws.removeEventListener("open", handleOpen);
+      ws.removeEventListener("message", handleMessage);
     };
   }, [excalidrawAPI]);
 
   return (
-    <Excalidraw
-      excalidrawAPI={setExcalidrawAPI}
-      onChange={handleChange}
-      theme={theme}
-    />
+    <div className="w-full h-full" ref={excalidrawContainerRef}>
+      <Excalidraw
+        excalidrawAPI={setExcalidrawAPI}
+        onChange={handleChange}
+        theme={theme}
+      />
+    </div>
   );
 };
 

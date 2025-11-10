@@ -74,7 +74,7 @@ export default function Chat({
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${meetingId}/upload-file`,
+        `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${meetingId}/upload-file`,
         {
           method: "POST",
           headers: {
