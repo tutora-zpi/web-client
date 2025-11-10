@@ -127,7 +127,7 @@ export default function Chat({
             const user = users.find((user) => user.id === message.senderId);
             return (
               <Message
-                key={message.sentAt}
+                key={message.id}
                 name={user?.name}
                 surname={user?.surname}
                 message={message.content}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -18,6 +18,52 @@ import { Badge } from "../ui/badge";
 import { Notification } from "@/types/notification";
 import { NotificationItem } from "./notification-item";
 import { useRouter } from "next/navigation";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useInView } from "react-intersection-observer";
+
+const fetchNotifications = async (
+  token: string,
+  lastNotificationId?: string
+) => {
+  const params = lastNotificationId
+    ? `?last_notification_id=${lastNotificationId}`
+    : "";
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE}/api/v1/notification${params}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const result = await response.json();
+  return result.data ?? [];
+};
+
+const deleteNotification = async (token: string, id: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE}/api/v1/notification`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ids: [id],
+      }),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to delete notification: ${response.status}`);
+  }
+};
 
 export default function Notifications({
   token,
@@ -26,9 +72,39 @@ export default function Notifications({
   token: string;
   username: string;
 }) {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const queryClient = useQueryClient();
 
   const router = useRouter();
+
+  const { data, status, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ["notifications"],
+    queryFn: ({ pageParam }) => fetchNotifications(token, pageParam),
+    getNextPageParam: (lastPage) => {
+      if (lastPage && lastPage.length > 0) {
+        return lastPage[lastPage.length - 1].id;
+      }
+      return undefined;
+    },
+    initialPageParam: undefined,
+  });
+
+  const dismissMutation = useMutation({
+    mutationFn: (id: string) => deleteNotification(token, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: () => {
+      toast.error("Failed to dismiss notification");
+    },
+  });
+
+  const { ref, inView } = useInView();
+
+  useEffect(() => {
+    if (inView) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, inView]);
 
   const handleNotification = (event: MessageEvent) => {
     const data = JSON.parse(event.data);
@@ -40,7 +116,7 @@ export default function Notifications({
           label: "Join",
           onClick: () => router.push(data.redirectionLink),
         },
-        duration: 7000,
+        duration: 5000,
       });
     } else {
       toast.info(data.title, {
@@ -49,10 +125,10 @@ export default function Notifications({
           label: "View",
           onClick: () => router.push(`/dashboard/invitations`),
         },
-        duration: 7000,
+        duration: 5000,
       });
     }
-    fetchNotifications();
+    queryClient.invalidateQueries({ queryKey: ["notifications"] });
   };
 
   useEffect(() => {
@@ -70,8 +146,6 @@ export default function Notifications({
         connect();
       };
     };
-
-    fetchNotifications();
     connect();
 
     return () => {
@@ -80,62 +154,22 @@ export default function Notifications({
     };
   }, [token]);
 
-  const fetchNotifications = async () => {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE}/api/v1/notification`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await response.json();
-    const processedNotifications = (data.data || []).map(
-      (notification: Notification) => ({
-        ...notification,
-        body: notification.redirectionLink.includes("invitations")
-          ? `${username}${notification.body}`
-          : notification.body,
-      })
-    );
-
-    setNotifications(processedNotifications);
-  };
-
-  const dismissNotification = async (id: string) => {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE}/api/v1/notification`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ids: [id],
-        }),
-      }
-    );
-
-    if (response.ok) {
-      setNotifications(
-        notifications.filter(
-          (notification: Notification) => notification.id !== id
-        )
-      );
-    }
-  };
-
-  return (
+  return status === "pending" || status === "error" ? (
+    <Button variant="secondary" className="relative" size="icon" disabled>
+      {" "}
+      <Bell />
+    </Button>
+  ) : (
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="secondary" className="relative" size="icon">
           <Bell />
-          {notifications.length > 0 && (
+          {data.pages.length > 0 && (
             <Badge
               variant="destructive"
               className="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center p-1 rounded-full"
             >
-              {notifications.length}
+              {data.pages[0].length === 10 ? "10+" : data.pages[0].length}
             </Badge>
           )}
         </Button>
@@ -148,16 +182,23 @@ export default function Notifications({
           </SheetDescription>
         </SheetHeader>
         <div className="overflow-auto p-2 gap-2 flex flex-col">
-          {notifications.map((notification: Notification) => (
-            <NotificationItem
-              key={notification.id}
-              title={notification.title}
-              description={notification.body}
-              link={notification.redirectionLink}
-              dismiss={() => dismissNotification(notification.id)}
-            />
-          ))}
+          {data.pages.map((page, idx) => {
+            return (
+              <div key={idx}>
+                {page.map((notification: Notification) => (
+                  <NotificationItem
+                    key={notification.id}
+                    title={notification.title}
+                    description={notification.body}
+                    link={notification.redirectionLink}
+                    dismiss={() => dismissMutation.mutate(notification.id)}
+                  />
+                ))}
+              </div>
+            );
+          })}
         </div>
+        <div ref={ref}>{isFetchingNextPage && "Loading..."}</div>
         <SheetFooter>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
