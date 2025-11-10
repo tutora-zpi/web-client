@@ -5,7 +5,7 @@ import { InviteUserDialog } from "@/components/room/invite-user-dialog";
 import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
-import { ActiveMeeting, Class, CreateChatDTO, Invitation } from "@/types/class";
+import { ActiveMeeting, Class, Invitation } from "@/types/class";
 import { ChatMessage, MeetingData } from "@/types/meeting";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
@@ -114,34 +114,8 @@ const getChatMessages = async (
   const chatData = await response.json();
   if (chatData.data) {
     return chatData.data;
-  } else {
-    await createChat(roomId, members);
   }
   return [];
-};
-
-const createChat = async (roomId: string, members: User[]) => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-
-  const requestBody: CreateChatDTO = {
-    classId: roomId,
-    memberIds: members.map((member) => member.id),
-  };
-
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/general`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    }
-  );
-
-  return await response.json();
 };
 
 const getActiveMeetings = async (

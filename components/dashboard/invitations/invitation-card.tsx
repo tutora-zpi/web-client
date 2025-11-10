@@ -40,7 +40,7 @@ export async function InvitationCard({
         </div>
       </CardContent>
       <CardFooter>
-        <InvitationButtons classId={classroom.id} />
+        <InvitationButtons classId={classroom.id} userId={user.id} />
       </CardFooter>
     </Card>
   );
