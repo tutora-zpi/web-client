@@ -90,11 +90,16 @@ export default function Notifications({
       }
     );
     const data = await response.json();
-    if (!data.data) {
-      setNotifications([]);
-    } else {
-      setNotifications(data.data);
-    }
+    const processedNotifications = (data.data || []).map(
+      (notification: Notification) => ({
+        ...notification,
+        body: notification.redirectionLink.includes("invitations")
+          ? `${username}${notification.body}`
+          : notification.body,
+      })
+    );
+
+    setNotifications(processedNotifications);
   };
 
   const dismissNotification = async (id: string) => {
