@@ -21,9 +21,18 @@ import Message from "./message";
 import { User } from "@/types/user";
 import { toast } from "sonner";
 
-const formSchema = z.object({
-  message: z.string().min(1, "Message cannot be empty"),
-});
+const formSchema = z
+  .object({
+    message: z.string(),
+  })
+  .refine(
+    () => {
+      return true;
+    },
+    {
+      message: "Message or file required",
+    }
+  );
 
 export default function Chat({
   meetingId,
@@ -97,6 +106,10 @@ export default function Chat({
   };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!selectedFile && !values.message.trim()) {
+      return;
+    }
+
     if (selectedFile) {
       uploadFile(values.message);
     } else {
@@ -155,7 +168,7 @@ export default function Chat({
                   <Input
                     placeholder="type here."
                     {...field}
-                    className="border-none active:border-none  focus-visible:ring-0"
+                    className="border-none active:border-none focus-visible:ring-0 focus-visible:border-none"
                     autoFocus
                   />
                 </FormControl>
@@ -181,7 +194,6 @@ export default function Chat({
               />
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
               >

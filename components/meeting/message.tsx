@@ -110,7 +110,7 @@ export default function Message({
                     </Button>
                   </DialogTrigger>
 
-                  <DialogContent className="w-[90vw] ">
+                  <DialogContent className="w-[90vw]">
                     <DialogHeader>
                       <DialogTitle>{fileLink.slice(14)}</DialogTitle>
                     </DialogHeader>
@@ -126,12 +126,16 @@ export default function Message({
                   </DialogContent>
                 </Dialog>
               ) : (
-                <Button asChild variant="secondary">
+                <Button
+                  asChild
+                  variant="secondary"
+                  className="w-44 sm:w-auto max-w-90"
+                >
                   <a
                     href={`${process.env.NEXT_PUBLIC_CHAT_SERVICE}${fileLink}`}
                   >
                     <File />
-                    <span>{fileLink.slice(14)}</span>
+                    <span className="truncate">{fileLink.slice(14)}</span>
                   </a>
                 </Button>
               )}

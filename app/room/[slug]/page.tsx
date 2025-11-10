@@ -253,13 +253,13 @@ export default async function Page({
           </div>
         </div>
 
-        <div className="flex w-full justify-around items-start mt-5">
+        <div className="flex w-full flex-col lg:flex-row lg:justify-around lg:items-start mt-5 gap-2">
           <div className="flex flex-col items-center gap-2">
             <PlannedMeetings meetings={meetings} />
             <PlanMeetingCalendar users={users} classId={slug} />
           </div>
 
-          <Tabs defaultValue="chat" className=" w-3/5">
+          <Tabs defaultValue="chat" className=" lg:w-3/5 w-full">
             <div className="flex items-center justify-start w-full">
               <TabsList>
                 <TabsTrigger value="chat">Chat</TabsTrigger>
