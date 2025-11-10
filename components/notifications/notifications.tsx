@@ -197,8 +197,9 @@ export default function Notifications({
               </div>
             );
           })}
+          <div ref={ref}>{isFetchingNextPage && "Loading..."}</div>
         </div>
-        <div ref={ref}>{isFetchingNextPage && "Loading..."}</div>
+
         <SheetFooter>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
