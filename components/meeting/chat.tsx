@@ -30,15 +30,6 @@ const formSchema = z.object({
 const MESSAGES_LIMIT = 10;
 const MAX_FILE_SIZE = 10_000_000;
 
-const toSeconds = (v: string | number | undefined): number | undefined => {
-  if (v === undefined || v === null) return undefined;
-  if (typeof v === "number") return Math.floor(v);
-  const ms = Date.parse(String(v));
-  if (!isNaN(ms)) return Math.floor(ms / 1000);
-  const n = Number(v);
-  return isNaN(n) ? undefined : Math.floor(n);
-};
-
 const getChatMessages = async (
   meetingId: string,
   token: string,
@@ -75,7 +66,6 @@ export default function Chat({
   token: string;
   users: User[];
 }) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const isInitialLoadRef = useRef(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -95,9 +85,7 @@ export default function Chat({
 
   const chatMessages = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages
-      .flat()
-      .map((m) => ({ ...m, sentAt: toSeconds(m.sentAt) }));
+    return data.pages.flat().map((m) => ({ ...m }));
   }, [data]);
 
   const { messages, sendMessage, addReaction } = useChat(
@@ -114,7 +102,6 @@ export default function Chat({
     combined.forEach((raw) => {
       const message: ChatMessage = {
         ...raw,
-        sentAt: toSeconds(raw.sentAt),
       } as ChatMessage;
       uniqueMessages.set(message.id, message);
     });
@@ -213,10 +200,7 @@ export default function Chat({
 
   return (
     <div className="flex flex-col h-full justify-between w-full">
-      <div
-        ref={scrollContainerRef}
-        className="overflow-y-auto border p-2 rounded flex flex-col gap-3 h-full"
-      >
+      <div className="overflow-y-auto border p-2 rounded flex flex-col gap-3 h-full">
         {allMessages.length > 0 ? (
           <>
             <div ref={ref} className="h-1">

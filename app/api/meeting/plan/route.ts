@@ -26,3 +26,32 @@ export async function POST(request: Request) {
 
   return new Response(JSON.stringify(data), { status: 200 });
 }
+
+export async function DELETE(request: Request) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  const body = await request.json();
+  const { meetingId } = body;
+
+  if (!meetingId) {
+    return new Response("Meeting ID is required", { status: 400 });
+  }
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_MEETING_SCHEDULER_SERVICE}/api/v1/meeting/plan/${meetingId}/cancel`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return new Response("Failed to delete the meeting.", { status: 400 });
+  }
+
+  return new Response(null, { status: 204 });
+}

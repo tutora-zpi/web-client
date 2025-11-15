@@ -65,13 +65,7 @@ const deleteNotification = async (token: string, id: string) => {
   }
 };
 
-export default function Notifications({
-  token,
-  username,
-}: {
-  token: string;
-  username: string;
-}) {
+export default function Notifications({ token }: { token: string }) {
   const queryClient = useQueryClient();
 
   const router = useRouter();
@@ -120,7 +114,7 @@ export default function Notifications({
       });
     } else {
       toast.info(data.title, {
-        description: `${username}${data.body}`,
+        description: data.body,
         action: {
           label: "View",
           onClick: () => router.push(`/dashboard/invitations`),

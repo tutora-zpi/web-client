@@ -71,7 +71,15 @@ export function useChat(
             prev.map((m) =>
               m.id !== reaction.messageId
                 ? m
-                : { ...m, reactions: [...(m.reactions ?? []), reaction] }
+                : {
+                    ...m,
+                    reactions: [
+                      ...(m.reactions?.filter(
+                        (r) => r.userId !== reaction.userId
+                      ) ?? []),
+                      reaction,
+                    ],
+                  }
             )
           );
           break;
@@ -109,10 +117,6 @@ export function useChat(
   const addReaction = (emoji: string, messageId: string) => {
     const msg = messages.find((m) => m.id === messageId);
     if (!msg) return;
-    const exists = msg.reactions?.some(
-      (r) => r.emoji === emoji && r.userId === userId
-    );
-    if (exists) return;
 
     wsRef.current?.send(
       JSON.stringify({

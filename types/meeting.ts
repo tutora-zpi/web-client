@@ -4,7 +4,7 @@ export interface Meeting {
 }
 
 export interface MeetingData {
-  meetingId: string;
+  id: string;
   members: UserDTO[];
   startDate: Date;
   finishDate: Date;

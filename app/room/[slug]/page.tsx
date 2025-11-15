@@ -6,7 +6,7 @@ import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
 import { ActiveMeeting, Class, Invitation } from "@/types/class";
-import { ChatMessage, MeetingData } from "@/types/meeting";
+import { MeetingData } from "@/types/meeting";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -97,27 +97,6 @@ const getActiveMeeting = async (
   }
 };
 
-const getChatMessages = async (
-  roomId: string,
-  members: User[],
-  token: string
-): Promise<ChatMessage[]> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chats/${roomId}/messages`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  const chatData = await response.json();
-  if (chatData.data) {
-    return chatData.data;
-  }
-  return [];
-};
-
 const getActiveMeetings = async (
   id: string,
   token: string
@@ -175,14 +154,6 @@ export default async function Page({
   const activeMeeting = await getActiveMeeting(slug, token);
 
   const meetings = await getActiveMeetings(slug, token);
-
-  let chatMessages: ChatMessage[] = [];
-
-  if (users.length > 1) {
-    chatMessages = await getChatMessages(slug, users, token);
-  }
-
-  console.log(meetings);
 
   return (
     <>
@@ -250,7 +221,6 @@ export default async function Page({
                     meetingId={slug}
                     userId={host.id}
                     token={token!}
-                    chatMessages={chatMessages}
                     users={users}
                   />
                 ) : (

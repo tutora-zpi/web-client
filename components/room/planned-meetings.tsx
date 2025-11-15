@@ -56,7 +56,8 @@ export default function PlannedMeetings({
         <Empty className="mb-5 md:p-0">
           <EmptyHeader>
             <EmptyTitle className="flex items-center gap-2">
-              <NotebookPen /> <span>No Planned Meetings Yet</span>
+              <NotebookPen />
+              <span>No Planned Meetings Yet</span>
             </EmptyTitle>
             <EmptyDescription>
               You haven&apos;t planned any meetings yet. Get started by planning
