@@ -200,7 +200,6 @@ const ExcalidrawWrapper = ({
           const d = msg.data;
           const { elements } = d.data;
 
-          // Nie aktualizuj jeśli użytkownik obecnie rysuje LUB edytuje tekst
           if (isDrawingRef.current || isEditingTextRef.current) {
             pendingSocketUpdateRef.current = elements ?? [];
           } else {
@@ -254,6 +253,11 @@ const ExcalidrawWrapper = ({
         theme={theme}
         onPointerDown={handleLocalPointerDown}
         onPointerUp={handleLocalPointerUp}
+        UIOptions={{
+          tools: {
+            image: false,
+          },
+        }}
       />
     </div>
   );
