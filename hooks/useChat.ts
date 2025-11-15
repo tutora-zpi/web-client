@@ -14,6 +14,10 @@ export function useChat(
   const hasJoinedRef = useRef(false);
 
   useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  useEffect(() => {
     const gateway = process.env.NEXT_PUBLIC_WEBSOCKET_GATEWAY!;
     const url = `${gateway}/ws?token=${token}`;
     const ws = WSConnect(url);
