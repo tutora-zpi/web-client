@@ -18,7 +18,7 @@ import { CreateRoomButton } from "./create-room-button";
 import { Plus } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 
-export function CreateRoomDialog() {
+export function CreateRoomDialog({ hostId }: { hostId: string }) {
   const [roomName, setRoomName] = useState("");
 
   return (
@@ -54,7 +54,7 @@ export function CreateRoomDialog() {
           </div>
 
           <DialogFooter>
-            <CreateRoomButton roomName={roomName} />
+            <CreateRoomButton roomName={roomName} hostId={hostId} />
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>

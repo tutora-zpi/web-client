@@ -4,6 +4,7 @@ import { Navbar } from "@/components/navbar";
 import { requireAuth } from "@/lib/auth";
 import { Class, ClassUserRole } from "@/types/class";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const getClasses = async (): Promise<Class[]> => {
   const cookieStore = await cookies();
@@ -25,7 +26,9 @@ const getClasses = async (): Promise<Class[]> => {
 
 export default async function Dashboard() {
   const host = await requireAuth();
-
+  if (!host) {
+    redirect("/login");
+  }
   const classes = await getClasses();
 
   return (
@@ -35,7 +38,7 @@ export default async function Dashboard() {
         className=" flex-1 p-4 overflow-y-auto grid grid-cols-2 gap-4 sm:justify-start md:grid-cols-3 lg:grid-cols-5
          "
       >
-        <CreateRoomDialog />
+        <CreateRoomDialog hostId={host.id} />
         {classes.map((classroom) => {
           const hostUserId = classroom.members.find(
             (member) => member.role === ClassUserRole.HOST

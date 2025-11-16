@@ -54,6 +54,7 @@ export function useWebRTC(userId: string, token: string, meetingID: string) {
                 candidate: event.candidate,
                 to: targetUserId,
                 from: userId,
+                roomId: meetingID,
               },
             })
           );
@@ -81,6 +82,7 @@ export function useWebRTC(userId: string, token: string, meetingID: string) {
                 offer: offer,
                 to: targetUserId,
                 from: userId,
+                roomId: meetingID,
               },
             })
           );
@@ -115,6 +117,7 @@ export function useWebRTC(userId: string, token: string, meetingID: string) {
               answer: answer,
               to: fromUserId,
               from: userId,
+              roomId: meetingID,
             },
           })
         );

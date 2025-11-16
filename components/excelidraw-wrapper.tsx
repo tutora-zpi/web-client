@@ -1,6 +1,5 @@
 "use client";
-import { Excalidraw } from "@excalidraw/excalidraw";
-import { io, Socket } from "socket.io-client";
+import { CaptureUpdateAction, Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { useCallback, useEffect, useState, useRef } from "react";
 import {
@@ -11,10 +10,37 @@ import {
   OrderedExcalidrawElement,
   Theme,
 } from "@excalidraw/excalidraw/element/types";
-import { ParamValue } from "next/dist/server/request/params";
 import { useTheme } from "next-themes";
+import { WSConnect } from "@/lib/websocket/ws-connect";
+import { WSBoard, WSGeneral } from "@/types/websocket";
 
-const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
+type ToolType =
+  | "selection"
+  | "lasso"
+  | "rectangle"
+  | "diamond"
+  | "ellipse"
+  | "arrow"
+  | "line"
+  | "freedraw"
+  | "text"
+  | "image"
+  | "eraser"
+  | "hand"
+  | "frame"
+  | "magicframe"
+  | "embeddable"
+  | "laser";
+
+const ExcalidrawWrapper = ({
+  meetingId,
+  token,
+  userId,
+}: {
+  meetingId: string;
+  token: string;
+  userId: string;
+}) => {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
 
@@ -22,99 +48,218 @@ const ExcalidrawWrapper = ({ sessionId }: { sessionId: ParamValue }) => {
 
   const { theme: themeMode } = useTheme();
 
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
   const elementsRef = useRef<readonly OrderedExcalidrawElement[] | null>(null);
-  const appStateRef = useRef<AppState | null>(null);
   const isUpdatingFromSocketRef = useRef(false);
+  const hasJoinedRef = useRef(false);
+  const excalidrawContainerRef = useRef<HTMLDivElement>(null);
+  const activeToolRef = useRef<ToolType | null>(null);
+
+  const isDrawingRef = useRef(false);
+  const pendingSocketUpdateRef = useRef<
+    readonly OrderedExcalidrawElement[] | null
+  >(null);
+
+  const isEditingTextRef = useRef(false);
+  const lastTextUpdateRef = useRef<number>(0);
 
   useEffect(() => {
     if (!themeMode) return;
-
     setTheme((themeMode as string) === "dark" ? "dark" : "light");
   }, [themeMode]);
 
+  const sendUpdate = useCallback(
+    (elements: readonly OrderedExcalidrawElement[]) => {
+      if (
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN
+      ) {
+        socketRef.current.send(
+          JSON.stringify({
+            name: WSBoard.BoardUpdateWSEvent,
+            data: {
+              meetingId,
+              data: {
+                elements,
+              },
+            },
+          })
+        );
+      }
+    },
+    [meetingId]
+  );
+
   const handleChange = useCallback(
-    (elements: readonly OrderedExcalidrawElement[], appState: AppState) => {
+    (newElements: readonly OrderedExcalidrawElement[], appState: AppState) => {
       if (!excalidrawAPI || !socketRef.current) return;
+
+      activeToolRef.current = appState.activeTool.type as ToolType;
+
+      const isCurrentlyEditingText = appState.editingTextElement !== null;
+      isEditingTextRef.current = isCurrentlyEditingText;
 
       if (isUpdatingFromSocketRef.current) {
         return;
       }
 
-      elementsRef.current = elements;
-      appStateRef.current = appState;
+      elementsRef.current = newElements;
+
+      if (isCurrentlyEditingText) {
+        const now = Date.now();
+        if (now - lastTextUpdateRef.current > 100) {
+          sendUpdate(newElements);
+          lastTextUpdateRef.current = now;
+        }
+      }
     },
-    [excalidrawAPI]
+    [excalidrawAPI, sendUpdate]
   );
 
+  const handleLocalPointerDown = () => {
+    isDrawingRef.current = true;
+  };
+
+  const handleLocalPointerUp = () => {
+    isDrawingRef.current = false;
+
+    if (elementsRef.current && socketRef.current && activeToolRef.current) {
+      const POINTER_UP_TOOLS: ToolType[] = [
+        "selection",
+        "lasso",
+        "rectangle",
+        "diamond",
+        "ellipse",
+        "arrow",
+        "line",
+        "freedraw",
+      ];
+      if (POINTER_UP_TOOLS.includes(activeToolRef.current)) {
+        sendUpdate(elementsRef.current);
+        elementsRef.current = null;
+      }
+    }
+    if (pendingSocketUpdateRef.current && excalidrawAPI) {
+      try {
+        isUpdatingFromSocketRef.current = true;
+        excalidrawAPI.updateScene({
+          elements: pendingSocketUpdateRef.current ?? [],
+          captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
+        isUpdatingFromSocketRef.current = false;
+      } catch (error) {
+        console.error("Error applying pending scene update:", error);
+        isUpdatingFromSocketRef.current = false;
+      }
+      pendingSocketUpdateRef.current = null;
+    }
+  };
+
   useEffect(() => {
-    const handlePointerUp = () => {
-      if (!elementsRef.current || !appStateRef.current || !socketRef.current)
-        return;
+    const INTERVAL_TOOLS: ToolType[] = ["eraser"];
+    const interval = setInterval(() => {
+      if (
+        socketRef.current &&
+        activeToolRef.current &&
+        elementsRef.current &&
+        INTERVAL_TOOLS.includes(activeToolRef.current)
+      ) {
+        sendUpdate(elementsRef.current);
+        elementsRef.current = null;
+      }
+    }, 200);
 
-      socketRef.current.emit("board:update", {
-        sessionId,
-        data: {
-          elements: elementsRef.current,
-          appStateRef: appStateRef.current,
-        },
-      });
-
-      elementsRef.current = null;
-      appStateRef.current = null;
-    };
-
-    document.addEventListener("pointerup", handlePointerUp);
-
-    return () => {
-      document.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, []);
+    return () => clearInterval(interval);
+  }, [meetingId, sendUpdate]);
 
   useEffect(() => {
     if (!excalidrawAPI) return;
 
-    socketRef.current = io(process.env.NEXT_PUBLIC_BOARD_SERVICE);
+    const gateway = process.env.NEXT_PUBLIC_WEBSOCKET_GATEWAY!;
+    const url = `${gateway}/ws?token=${token}`;
+    const ws = WSConnect(url);
+    socketRef.current = ws;
 
-    const socket = socketRef.current;
-
-    socket.on("connect", () => {
-      socket.emit("join-session", { sessionId });
-    });
-
-    socket.on("board:sync", (payload) => {
-      const { elements, appState } = payload.data ?? payload;
-
-      try {
-        isUpdatingFromSocketRef.current = true;
-        excalidrawAPI.updateScene({
-          elements: elements ?? [],
-          appState: appState ?? {},
-        });
-
-        isUpdatingFromSocketRef.current = false;
-      } catch (error) {
-        console.error("Error updating scene:", error);
-        isUpdatingFromSocketRef.current = false;
+    const handleOpen = () => {
+      if (hasJoinedRef.current) return;
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({
+            name: WSGeneral.UserJoinedWSEvent,
+            data: { roomId: meetingId, userId },
+          })
+        );
+        hasJoinedRef.current = true;
       }
-    });
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      const msg = JSON.parse(event.data);
+      switch (msg.name) {
+        case WSBoard.BoardUpdateWSEvent: {
+          const d = msg.data;
+          const { elements } = d.data;
+
+          if (isDrawingRef.current || isEditingTextRef.current) {
+            pendingSocketUpdateRef.current = elements ?? [];
+          } else {
+            try {
+              isUpdatingFromSocketRef.current = true;
+              excalidrawAPI.updateScene({
+                elements: elements ?? [],
+                captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+              });
+              isUpdatingFromSocketRef.current = false;
+            } catch (error) {
+              console.error("Error updating scene from socket:", error);
+              isUpdatingFromSocketRef.current = false;
+            }
+          }
+          break;
+        }
+      }
+    };
+
+    const handleLeave = () => {
+      if (!hasJoinedRef.current) return;
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        socketRef.current.send(
+          JSON.stringify({
+            name: WSGeneral.UserLeftWSEvent,
+            data: { roomId: meetingId, userId },
+          })
+        );
+      }
+      hasJoinedRef.current = false;
+    };
+
+    ws.addEventListener("open", handleOpen);
+    ws.addEventListener("message", handleMessage);
+
+    handleOpen();
 
     return () => {
-      socket.off("connect");
-      socket.off("board:sync");
-      socket.off("disconnect");
-      socket.off("connect_error");
-      socketRef.current?.disconnect();
-      socketRef.current = null;
+      handleLeave();
+      ws.removeEventListener("open", handleOpen);
+      ws.removeEventListener("message", handleMessage);
     };
-  }, [excalidrawAPI]);
+  }, [excalidrawAPI, meetingId, token, userId]);
 
   return (
-    <Excalidraw
-      excalidrawAPI={setExcalidrawAPI}
-      onChange={handleChange}
-      theme={theme}
-    />
+    <div className="w-full h-full" ref={excalidrawContainerRef}>
+      <Excalidraw
+        excalidrawAPI={setExcalidrawAPI}
+        onChange={handleChange}
+        theme={theme}
+        onPointerDown={handleLocalPointerDown}
+        onPointerUp={handleLocalPointerUp}
+        UIOptions={{
+          tools: {
+            image: false,
+          },
+        }}
+      />
+    </div>
   );
 };
 

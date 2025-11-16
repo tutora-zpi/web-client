@@ -5,8 +5,8 @@ import { InviteUserDialog } from "@/components/room/invite-user-dialog";
 import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
 import { requireAuth } from "@/lib/auth";
-import { ActiveMeeting, Class, CreateChatDTO, Invitation } from "@/types/class";
-import { ChatMessage, MeetingData } from "@/types/meeting";
+import { ActiveMeeting, Class, Invitation } from "@/types/class";
+import { MeetingData } from "@/types/meeting";
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -97,53 +97,6 @@ const getActiveMeeting = async (
   }
 };
 
-const getChatMessages = async (
-  roomId: string,
-  members: User[],
-  token: string
-): Promise<ChatMessage[]> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${roomId}/messages`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  const chatData = await response.json();
-  if (chatData.data) {
-    return chatData.data;
-  } else {
-    await createChat(roomId, members);
-  }
-  return [];
-};
-
-const createChat = async (roomId: string, members: User[]) => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-
-  const requestBody: CreateChatDTO = {
-    classId: roomId,
-    memberIds: [members[0].id, members[1].id],
-  };
-
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/general`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    }
-  );
-
-  return await response.json();
-};
-
 const getActiveMeetings = async (
   id: string,
   token: string
@@ -158,8 +111,6 @@ const getActiveMeetings = async (
     }
   );
   const meetingsData = await response.json();
-
-  console.log(meetingsData);
 
   if (meetingsData.success === true) {
     const meetings = meetingsData.data.filter((meeting: MeetingData) => {
@@ -204,14 +155,6 @@ export default async function Page({
 
   const meetings = await getActiveMeetings(slug, token);
 
-  let chatMessages: ChatMessage[] = [];
-
-  if (users.length > 1) {
-    chatMessages = await getChatMessages(slug, users, token);
-  }
-
-  console.log(meetings);
-
   return (
     <>
       <Navbar />
@@ -255,17 +198,13 @@ export default async function Page({
           </div>
         </div>
 
-        <div className="flex w-full justify-around items-start mt-5">
+        <div className="flex w-full flex-col lg:flex-row lg:justify-around lg:items-start mt-5 gap-2">
           <div className="flex flex-col items-center gap-2">
             <PlannedMeetings meetings={meetings} />
-            <PlanMeetingCalendar
-              user={host}
-              friend={users.find((user) => user.id !== host.id)!}
-              classId={slug}
-            />
+            <PlanMeetingCalendar users={users} classId={slug} />
           </div>
 
-          <Tabs defaultValue="chat" className=" w-3/5">
+          <Tabs defaultValue="chat" className=" lg:w-3/5 w-full">
             <div className="flex items-center justify-start w-full">
               <TabsList>
                 <TabsTrigger value="chat">Chat</TabsTrigger>
@@ -282,7 +221,6 @@ export default async function Page({
                     meetingId={slug}
                     userId={host.id}
                     token={token!}
-                    chatMessages={chatMessages}
                     users={users}
                   />
                 ) : (

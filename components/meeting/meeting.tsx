@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ChatMessage, MeetingData } from "@/types/meeting";
+import { MeetingData } from "@/types/meeting";
 import Chat from "./chat";
 import Board from "./board";
 import VoiceConnection from "./voice-connection";
@@ -9,27 +9,6 @@ import { requireAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { User } from "@/types/user";
 import { EndMeetingButton } from "./end-meeting-button";
-
-const getChatMessages = async (
-  meetingId: string,
-  token: string
-): Promise<ChatMessage[]> => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_CHAT_SERVICE}/api/v1/chat/${meetingId}/messages`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  const chatData = await response.json();
-  if (chatData.success === true) {
-    return chatData.data;
-  }
-  return [];
-};
 
 const getMeetingDetails = async (
   classId: string,
@@ -85,7 +64,6 @@ export default async function Meeting({
   }
 
   const user = await requireAuth();
-  const chatData = await getChatMessages(meetingId, token);
   const meetingDetails = await getMeetingDetails(classId, token);
 
   if (!meetingDetails) {
@@ -104,7 +82,7 @@ export default async function Meeting({
       </div>
       <div className="flex md:flex-row md:justify-between flex-col justify-center items-center mt-2">
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
-          <Board meetingId={meetingId} />
+          <Board meetingId={meetingId} token={token} userId={user.id} />
           <div className="flex justify-between items-center mt-2">
             <div className="flex gap-2 items-center">
               <EndMeetingButton meetingId={meetingId} classId={classId} />
@@ -125,7 +103,6 @@ export default async function Meeting({
             meetingId={meetingId}
             userId={user?.id}
             token={token}
-            chatMessages={chatData}
             users={users}
           />
         </div>

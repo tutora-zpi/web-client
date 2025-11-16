@@ -27,7 +27,7 @@ export default function MeetingsDashboard() {
 
   const endMeeting = async (meeting: Meeting) => {
     const updatedMeetings = meetings.filter(
-      (m) => m.data.meetingId !== meeting.data.meetingId
+      (m) => m.data.id !== meeting.data.id
     );
     localStorage.setItem("meetingsHistory", JSON.stringify(updatedMeetings));
     setMeetings(updatedMeetings);
@@ -37,9 +37,9 @@ export default function MeetingsDashboard() {
     <div className="flex flex-col gap-2">
       <div className="text-xl">Meetings:</div>
       {meetings.map((meeting) => (
-        <div key={meeting.data.meetingId}>
+        <div key={meeting.data.id}>
           <MeetingCard
-            id={meeting.data.meetingId}
+            id={meeting.data.id}
             members={meeting.data.members}
             onDelete={() => endMeeting(meeting)}
           />

@@ -14,13 +14,20 @@ import {
 import { Check, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function InvitationButtons({ classId }: { classId: string }) {
+export default function InvitationButtons({
+  classId,
+  userId,
+}: {
+  classId: string;
+  userId: string;
+}) {
   const router = useRouter();
 
   const acceptInvitation = async () => {
     try {
       const response = await fetch(`/api/invitations/${classId}/accept`, {
         method: "POST",
+        body: JSON.stringify({ memberIds: [userId] }),
       });
 
       if (response.ok) {

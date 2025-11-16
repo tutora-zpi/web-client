@@ -11,11 +11,23 @@ const ExcalidrawWrapper = dynamic(
   }
 );
 
-export default function Board({ meetingId }: { meetingId: string }) {
+export default function Board({
+  meetingId,
+  token,
+  userId,
+}: {
+  meetingId: string;
+  token: string;
+  userId: string;
+}) {
   return (
     <Suspense fallback={<Loading />}>
       <div className="h-130">
-        <ExcalidrawWrapper sessionId={meetingId} />
+        <ExcalidrawWrapper
+          meetingId={meetingId}
+          token={token}
+          userId={userId}
+        />
       </div>
     </Suspense>
   );

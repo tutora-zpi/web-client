@@ -4,7 +4,7 @@ export interface Meeting {
 }
 
 export interface MeetingData {
-  meetingId: string;
+  id: string;
   members: UserDTO[];
   startDate: Date;
   finishDate: Date;
@@ -34,7 +34,8 @@ export interface ChatMessage {
   senderId: string;
   content: string;
   reactions?: Reaction[];
-  sentAt: number;
+  fileLink?: string;
+  sentAt: Date | number;
 }
 
 export interface SentChatMessage {

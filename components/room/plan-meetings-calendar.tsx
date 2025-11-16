@@ -9,12 +9,10 @@ import { User } from "@/types/user";
 import { PlanMeetingForm } from "./plan-meeting-button";
 
 export default function PlanMeetingCalendar({
-  friend,
-  user,
+  users,
   classId,
 }: {
-  friend: User;
-  user: User;
+  users: User[];
   classId: string;
 }) {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -74,8 +72,7 @@ export default function PlanMeetingCalendar({
           </div>
 
           <PlanMeetingForm
-            user={user}
-            friend={friend}
+            members={users}
             classId={classId}
             date={date}
             startTime={startTime}

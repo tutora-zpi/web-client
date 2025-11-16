@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export function CreateRoomButton({ roomName }: { roomName: string }) {
+export function CreateRoomButton({
+  roomName,
+  hostId,
+}: {
+  roomName: string;
+  hostId: string;
+}) {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +23,7 @@ export function CreateRoomButton({ roomName }: { roomName: string }) {
         method: "POST",
         body: JSON.stringify({
           name: roomName,
+          members: [hostId],
         }),
       });
 

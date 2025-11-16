@@ -14,6 +14,10 @@ export function useChat(
   const hasJoinedRef = useRef(false);
 
   useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  useEffect(() => {
     const gateway = process.env.NEXT_PUBLIC_WEBSOCKET_GATEWAY!;
     const url = `${gateway}/ws?token=${token}`;
     const ws = WSConnect(url);
@@ -48,13 +52,15 @@ export function useChat(
     const handleMessage = (event: MessageEvent) => {
       const msg = JSON.parse(event.data);
       switch (msg.name) {
-        case WSChat.SendMessageWSEvent: {
+        case WSChat.SendMessageWSEvent:
+        case WSChat.SendFileMessageEvent: {
           const d = msg.data;
           const chatMessage: ChatMessage = {
             id: d.messageId,
             senderId: d.senderId,
             sentAt: d.sentAt,
             content: d.content,
+            fileLink: d.fileLink ? d.fileLink : undefined,
           };
           setMessages((prev) => [...prev, chatMessage]);
           break;
@@ -65,7 +71,15 @@ export function useChat(
             prev.map((m) =>
               m.id !== reaction.messageId
                 ? m
-                : { ...m, reactions: [...(m.reactions ?? []), reaction] }
+                : {
+                    ...m,
+                    reactions: [
+                      ...(m.reactions?.filter(
+                        (r) => r.userId !== reaction.userId
+                      ) ?? []),
+                      reaction,
+                    ],
+                  }
             )
           );
           break;
@@ -103,10 +117,6 @@ export function useChat(
   const addReaction = (emoji: string, messageId: string) => {
     const msg = messages.find((m) => m.id === messageId);
     if (!msg) return;
-    const exists = msg.reactions?.some(
-      (r) => r.emoji === emoji && r.userId === userId
-    );
-    if (exists) return;
 
     wsRef.current?.send(
       JSON.stringify({

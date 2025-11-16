@@ -1,6 +1,6 @@
 "use client";
 
-import { SmilePlus, UserRound } from "lucide-react";
+import { SmilePlus, UserRound, File } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { EMOJI_OPTIONS, Reaction } from "@/types/meeting";
+import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { AspectRatio } from "../ui/aspect-ratio";
+
+const isImageFile = (filename: string): boolean => {
+  const imageExtensions = ["jpg", "jpeg", "png", "webp", "gif"];
+  const extension = filename.split(".").pop()?.toLowerCase();
+  return extension ? imageExtensions.includes(extension) : false;
+};
 
 export default function Message({
   messageId,
@@ -22,6 +37,7 @@ export default function Message({
   message,
   avatarUrl,
   reactions,
+  fileLink,
   onAddReaction,
 }: {
   messageId: string;
@@ -30,6 +46,7 @@ export default function Message({
   message: string;
   avatarUrl?: string;
   reactions?: Reaction[];
+  fileLink?: string;
   onAddReaction: (emoji: string, messageId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -77,6 +94,53 @@ export default function Message({
           <ItemDescription className="break-words">
             <span>{message}</span>
           </ItemDescription>
+          {fileLink && (
+            <div className="mt-2">
+              {isImageFile(fileLink) ? (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" className="p-0 h-auto">
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_CHAT_SERVICE}${fileLink}`}
+                        alt="Attachment"
+                        width={200}
+                        height={200}
+                        className="rounded-md object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                      />
+                    </Button>
+                  </DialogTrigger>
+
+                  <DialogContent className="w-[90vw]">
+                    <DialogHeader>
+                      <DialogTitle>{fileLink.slice(14)}</DialogTitle>
+                    </DialogHeader>
+
+                    <AspectRatio ratio={16 / 9}>
+                      <Image
+                        src={`${process.env.NEXT_PUBLIC_CHAT_SERVICE}${fileLink}`}
+                        alt="Attachment"
+                        fill
+                        className="rounded-lg object-cover "
+                      />
+                    </AspectRatio>
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <Button
+                  asChild
+                  variant="secondary"
+                  className="w-44 sm:w-auto max-w-90"
+                >
+                  <a
+                    href={`${process.env.NEXT_PUBLIC_CHAT_SERVICE}${fileLink}`}
+                  >
+                    <File />
+                    <span className="truncate">{fileLink.slice(14)}</span>
+                  </a>
+                </Button>
+              )}
+            </div>
+          )}
         </ItemContent>
         <ItemActions>
           <Popover open={open} onOpenChange={setOpen}>

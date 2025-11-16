@@ -23,7 +23,7 @@ export async function Navbar() {
       <div className="flex justify-center items-center gap-3">
         {user ? (
           <>
-            <Notifications token={token!} username={user.name} />
+            <Notifications token={token!} />
             <Button
               asChild
               variant="secondary"
