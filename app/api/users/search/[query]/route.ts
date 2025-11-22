@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { query: string } }
+  { params }: { params: Promise<{ query: string }> }
 ) {
   const { query } = await params;
   const cookieStore = await cookies();

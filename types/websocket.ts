@@ -26,3 +26,8 @@ export enum WSRTC {
   IceCandidateWSEvent = "IceCandidateWSEvent",
   OfferWSEvent = "OfferWSEvent",
 }
+
+export enum WSRecording {
+  RecordRequestedWSEvent = "RecordRequestedWSEvent",
+  StopRecordingRequestedWSEvent = "StopRecordingRequestedWSEvent",
+}

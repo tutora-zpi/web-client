@@ -189,12 +189,12 @@ export default async function Page({
                 </div>
               </Button>
             )}
-            <UsersDropdown users={users} />
             <InviteUserDialog
               classId={slug}
               host={host}
               userIds={invitations.map((invitation) => invitation.userId)}
             />
+            <UsersDropdown users={users} />
           </div>
         </div>
 

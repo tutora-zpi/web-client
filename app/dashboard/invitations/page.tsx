@@ -14,7 +14,7 @@ const getInvitations = async (token: string): Promise<Invitation[]> => {
       },
     }
   );
-  const invitations = await response.json();
+  const invitations: Invitation[] = await response.json();
 
   return invitations;
 };
@@ -48,7 +48,7 @@ const getUserDetails = async (userId: string, token: string): Promise<User> => {
   return response.json();
 };
 
-export const getInvitationsWithDetails = async (): Promise<
+const getInvitationsWithDetails = async (): Promise<
   InvitationWithDetails[]
 > => {
   const cookieStore = await cookies();

@@ -9,6 +9,7 @@ import { requireAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { User } from "@/types/user";
 import { EndMeetingButton } from "./end-meeting-button";
+import RecordMeeting from "./record-meeting";
 
 const getMeetingDetails = async (
   classId: string,
@@ -90,6 +91,12 @@ export default async function Meeting({
                 <Link href={`/room/${classId}`}>Back to class</Link>
               </Button>
             </div>
+            <RecordMeeting
+              meetingId={meetingId}
+              userId={user?.id}
+              token={token}
+              finishTime={meetingDetails.finishDate}
+            />
             <VoiceConnection
               meetingId={meetingId}
               token={token}

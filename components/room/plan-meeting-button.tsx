@@ -122,8 +122,8 @@ export function PlanMeetingForm({
             )}
           />
 
-          <Button type="submit" variant="outline">
-            <CalendarCheck />
+          <Button type="submit">
+            Plan <CalendarCheck />
           </Button>
         </div>
 

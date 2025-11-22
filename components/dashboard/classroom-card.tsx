@@ -10,7 +10,7 @@ import {
 import { User } from "@/types/user";
 import { cookies } from "next/headers";
 import { ClassUser, ClassUserRole } from "@/types/class";
-import { GraduationCap } from "lucide-react";
+import { Crown } from "lucide-react";
 import { DeleteClassroomButton } from "./delete-classroom-button";
 import { cn } from "@/lib/utils";
 
@@ -64,7 +64,7 @@ export async function ClassroomCard({
         <div className="flex flex-col gap-2 ">
           {users.map((user) => (
             <div key={user.id} className="text-sm flex items-center gap-2">
-              {user.id === host?.userId && <GraduationCap />}
+              {user.id === host?.userId && <Crown />}
               {user.name} {user.surname}{" "}
             </div>
           ))}
