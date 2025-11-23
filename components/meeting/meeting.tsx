@@ -84,25 +84,27 @@ export default async function Meeting({
       <div className="flex md:flex-row md:justify-between flex-col justify-center items-center mt-2">
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
           <Board meetingId={meetingId} token={token} userId={user.id} />
-          <div className="flex mt-2 flex-col-reverse gap-2 justify-between lg:flex-row lg:items-center">
-            <div className="flex gap-2 items-center">
+          <div className="flex mt-2  gap-2 justify-between flex-row items-center">
+            <div className="flex gap-2 lg:items-center flex-col lg:flex-row">
               <EndMeetingButton meetingId={meetingId} classId={classId} />
               <Button asChild variant="secondary">
                 <Link href={`/room/${classId}`}>Back to class</Link>
               </Button>
             </div>
-            <RecordMeeting
-              meetingId={meetingId}
-              userId={user?.id}
-              token={token}
-              finishTime={meetingDetails.finishDate}
-            />
-            <VoiceConnection
-              meetingId={meetingId}
-              token={token}
-              userId={user.id}
-              meetingUsers={users}
-            />
+            <div className="flex flex-col-reverse lg:flex-row gap-2">
+              <RecordMeeting
+                meetingId={meetingId}
+                userId={user?.id}
+                token={token}
+                finishTime={meetingDetails.finishDate}
+              />
+              <VoiceConnection
+                meetingId={meetingId}
+                token={token}
+                userId={user.id}
+                meetingUsers={users}
+              />
+            </div>
           </div>
         </div>
         <div className="w-4/5 md:w-1/4 flex flex-col m-2 h-140 justify-between">

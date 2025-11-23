@@ -34,14 +34,11 @@ export default function RecordMeeting({
   );
 
   return (
-    <div className="flex items-center">
+    <>
       {!isRecording ? (
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button
-              variant="default"
-              className="bg-green-500 text-white dark:bg-green-600"
-            >
+            <Button variant="default">
               <div className="flex items-center gap-2">
                 <Disc /> <span>Start Recording</span>
               </div>
@@ -64,10 +61,10 @@ export default function RecordMeeting({
           </AlertDialogContent>
         </AlertDialog>
       ) : (
-        <div className="animate-pulse bg-destructive text-destructive-foreground px-4 py-2 text-sm font-medium rounded-md inline-flex items-center gap-2 h-9">
+        <div className="animate-pulse bg-destructive text-destructive-foreground px-4 py-2 text-sm font-medium rounded-md inline-flex items-center gap-2 h-9 justify-center">
           <Disc2 width="16" height="16" /> <span>Recording</span>
         </div>
       )}
-    </div>
+    </>
   );
 }
