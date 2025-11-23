@@ -35,7 +35,7 @@ export interface ChatMessage {
   content: string;
   reactions?: Reaction[];
   fileLink?: string;
-  sentAt: Date | number;
+  sentAt: number;
 }
 
 export interface SentChatMessage {

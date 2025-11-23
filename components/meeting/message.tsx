@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { AspectRatio } from "../ui/aspect-ratio";
+import { format } from "date-fns";
 
 const isImageFile = (filename: string): boolean => {
   const imageExtensions = ["jpg", "jpeg", "png", "webp", "gif"];
@@ -38,6 +38,7 @@ export default function Message({
   avatarUrl,
   reactions,
   fileLink,
+  timestamp,
   onAddReaction,
 }: {
   messageId: string;
@@ -47,6 +48,7 @@ export default function Message({
   avatarUrl?: string;
   reactions?: Reaction[];
   fileLink?: string;
+  timestamp: number;
   onAddReaction: (emoji: string, messageId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -62,6 +64,7 @@ export default function Message({
       groupedReactions[r.emoji] = (groupedReactions[r.emoji] || 0) + 1;
     }
   }
+  console.log(timestamp);
 
   return (
     <div className="flex w-full max-w-lg flex-col">
@@ -94,6 +97,12 @@ export default function Message({
           <ItemDescription className="break-words">
             <span>{message}</span>
           </ItemDescription>
+          <ItemDescription className="text-xs">
+            <span>
+              {format(new Date(timestamp * 1000), "dd.MM.yyyy HH:mm")}
+            </span>
+          </ItemDescription>
+
           {fileLink && (
             <div className="mt-2">
               {isImageFile(fileLink) ? (
@@ -110,19 +119,19 @@ export default function Message({
                     </Button>
                   </DialogTrigger>
 
-                  <DialogContent className="w-[90vw]">
+                  <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-auto p-4">
                     <DialogHeader>
                       <DialogTitle>{fileLink.slice(14)}</DialogTitle>
                     </DialogHeader>
 
-                    <AspectRatio ratio={16 / 9}>
-                      <Image
+                    <div className="relative w-full">
+                      <img
                         src={`${process.env.NEXT_PUBLIC_CHAT_SERVICE}${fileLink}`}
                         alt="Attachment"
-                        fill
-                        className="rounded-lg object-cover "
+                        className="rounded-lg w-full h-auto max-w-full"
+                        style={{ maxHeight: "calc(90vh - 100px)" }}
                       />
-                    </AspectRatio>
+                    </div>
                   </DialogContent>
                 </Dialog>
               ) : (

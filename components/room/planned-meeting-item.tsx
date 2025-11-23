@@ -10,6 +10,17 @@ import { MeetingData } from "@/types/meeting";
 import { CalendarMinus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
 
 export default function PlannedMeetingItem({
   meeting,
@@ -17,7 +28,6 @@ export default function PlannedMeetingItem({
   meeting: MeetingData;
 }) {
   const router = useRouter();
-  console.log(meeting);
 
   const cancelMeeting = async () => {
     try {
@@ -54,9 +64,29 @@ export default function PlannedMeetingItem({
         </ItemDescription>
       </ItemContent>
       <ItemActions>
-        <Button variant="destructive" size="icon" onClick={cancelMeeting}>
-          <CalendarMinus />
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="icon">
+              <CalendarMinus />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel Meeting?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. Participants will be notified.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Return</AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button variant="destructive" onClick={cancelMeeting}>
+                  Cancel
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </ItemActions>
     </Item>
   );

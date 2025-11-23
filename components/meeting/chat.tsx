@@ -224,6 +224,7 @@ export default function Chat({
                   messageId={message.id}
                   reactions={message.reactions}
                   fileLink={message.fileLink}
+                  timestamp={message.sentAt}
                   onAddReaction={addReaction}
                 />
               );
