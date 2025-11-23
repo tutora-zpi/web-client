@@ -3,6 +3,17 @@
 import { useRecording } from "@/hooks/useRecording";
 import { Disc, Disc2 } from "lucide-react";
 import { Button } from "../ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function RecordMeeting({
   meetingId,
@@ -15,7 +26,7 @@ export default function RecordMeeting({
   userId: string;
   finishTime: Date;
 }) {
-  const { isRecording, startRecording, stopRecording } = useRecording(
+  const { isRecording, startRecording } = useRecording(
     userId,
     token,
     meetingId,
@@ -23,14 +34,40 @@ export default function RecordMeeting({
   );
 
   return (
-    <div className="flex justify-center items-center gap-2">
-      <Button
-        variant={isRecording ? "destructive" : "default"}
-        size="icon"
-        onClick={!isRecording ? startRecording : stopRecording}
-      >
-        {isRecording ? <Disc2 /> : <Disc />}
-      </Button>
+    <div className="flex items-center">
+      {!isRecording ? (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="default"
+              className="bg-green-500 text-white dark:bg-green-600"
+            >
+              <div className="flex items-center gap-2">
+                <Disc /> <span>Start Recording</span>
+              </div>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Start Recording Meeting?</AlertDialogTitle>
+              <AlertDialogDescription>
+                AI materials will be generated after you start the recording.
+                This will capture audio and create meeting notes and quiz.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={startRecording}>
+                Start Recording
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : (
+        <div className="animate-pulse bg-destructive text-destructive-foreground px-4 py-2 text-sm font-medium rounded-md inline-flex items-center gap-2 h-9">
+          <Disc2 width="16" height="16" /> <span>Recording</span>
+        </div>
+      )}
     </div>
   );
 }

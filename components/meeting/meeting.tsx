@@ -84,7 +84,7 @@ export default async function Meeting({
       <div className="flex md:flex-row md:justify-between flex-col justify-center items-center mt-2">
         <div className="w-4/5 md:w-3/4  h-140 m-2 flex flex-col justify-between">
           <Board meetingId={meetingId} token={token} userId={user.id} />
-          <div className="flex justify-between items-center mt-2">
+          <div className="flex mt-2 flex-col-reverse gap-2 justify-between lg:flex-row lg:items-center">
             <div className="flex gap-2 items-center">
               <EndMeetingButton meetingId={meetingId} classId={classId} />
               <Button asChild variant="secondary">

@@ -26,7 +26,7 @@ export default function VoiceConnection({
   );
 
   return (
-    <div className="flex flex-row gap-2 mt-2">
+    <div className="flex flex-row gap-2 ">
       {isConnected && (
         <div className="flex flex-row items-center gap-2">
           <Badge
