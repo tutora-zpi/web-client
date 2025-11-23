@@ -42,9 +42,9 @@ export default function VoiceConnection({
                 <Avatar key={p}>
                   <AvatarImage
                     src={meetingUsers.find((user) => user.id === p)?.avatarUrl}
-                    alt="@shadcn"
+                    alt="meeting-member-avatar"
                   />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarFallback>BOT</AvatarFallback>
                 </Avatar>
               ))}
             </div>
