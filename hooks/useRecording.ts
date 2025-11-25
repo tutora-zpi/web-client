@@ -51,6 +51,11 @@ export function useRecording(
           setIsRecording(true);
           break;
         }
+
+        case WSRecording.StopRecordingRequestedWSEvent: {
+          setIsRecording(false);
+          break;
+        }
       }
     };
 

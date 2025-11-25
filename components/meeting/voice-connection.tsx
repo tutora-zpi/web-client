@@ -7,6 +7,7 @@ import { useWebRTC } from "@/hooks/useVoiceCall";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User } from "@/types/user";
 import { Badge } from "../ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export default function VoiceConnection({
   meetingId,
@@ -39,13 +40,25 @@ export default function VoiceConnection({
           {participants.length && (
             <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 ">
               {participants.map((p) => (
-                <Avatar key={p}>
-                  <AvatarImage
-                    src={meetingUsers.find((user) => user.id === p)?.avatarUrl}
-                    alt="meeting-member-avatar"
-                  />
-                  <AvatarFallback>BOT</AvatarFallback>
-                </Avatar>
+                <Tooltip key={p}>
+                  <TooltipTrigger asChild>
+                    <Avatar>
+                      <AvatarImage
+                        src={
+                          meetingUsers.find((user) => user.id === p)?.avatarUrl
+                        }
+                        alt="meeting-member-avatar"
+                      />
+                      <AvatarFallback>BOT</AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      {meetingUsers.find((user) => user.id === p)?.name}{" "}
+                      {meetingUsers.find((user) => user.id === p)?.surname}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
           )}

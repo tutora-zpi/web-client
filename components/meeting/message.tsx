@@ -64,8 +64,6 @@ export default function Message({
       groupedReactions[r.emoji] = (groupedReactions[r.emoji] || 0) + 1;
     }
   }
-  console.log(timestamp);
-
   return (
     <div className="flex w-full max-w-lg flex-col">
       <Item variant="outline" className="relative">

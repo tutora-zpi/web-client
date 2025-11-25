@@ -30,10 +30,6 @@ export function StartMeetingButton({
   const { mutate: createMeetingMutation, isPending } = useMutation({
     mutationFn: createMeeting,
     onSuccess: (data) => {
-      toast.success("Meeting started!", {
-        description: `We will redirect you shortly!`,
-        richColors: true,
-      });
       router.push(`/room/${classId}/meeting/${data.data.meetingId}`);
     },
     onError: () => {

@@ -26,7 +26,7 @@ export default function RecordMeeting({
   userId: string;
   finishTime: Date;
 }) {
-  const { isRecording, startRecording } = useRecording(
+  const { isRecording, startRecording, stopRecording } = useRecording(
     userId,
     token,
     meetingId,
@@ -61,9 +61,15 @@ export default function RecordMeeting({
           </AlertDialogContent>
         </AlertDialog>
       ) : (
-        <div className="animate-pulse bg-destructive text-destructive-foreground px-4 py-2 text-sm font-medium rounded-md inline-flex items-center gap-2 h-9 justify-center">
-          <Disc2 width="16" height="16" /> <span>Recording</span>
-        </div>
+        <Button
+          className="animate-pulse"
+          variant="destructive"
+          onClick={stopRecording}
+        >
+          <div className="flex items-center gap-2">
+            <Disc2 /> <span>Recording</span>
+          </div>
+        </Button>
       )}
     </>
   );
