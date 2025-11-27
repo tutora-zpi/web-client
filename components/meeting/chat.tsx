@@ -22,6 +22,7 @@ import { User } from "@/types/user";
 import { toast } from "sonner";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   message: z.string(),
@@ -66,10 +67,12 @@ export default function Chat({
   token: string;
   users: User[];
 }) {
-  const bottomRef = useRef<HTMLDivElement>(null);
   const isInitialLoadRef = useRef(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+  const previousScrollHeightRef = useRef<number>(0);
 
   const { data, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["messages", meetingId],
@@ -114,17 +117,38 @@ export default function Chat({
   const { ref, inView } = useInView();
 
   useEffect(() => {
-    if (isInitialLoadRef.current && allMessages.length > 0) {
-      bottomRef.current?.scrollIntoView({ behavior: "instant" });
-      isInitialLoadRef.current = false;
+    if (chatContainerRef.current && previousScrollHeightRef.current > 0) {
+      const newScrollHeight = chatContainerRef.current.scrollHeight;
+      const scrollDifference =
+        newScrollHeight - previousScrollHeightRef.current;
+
+      if (scrollDifference > 0) {
+        chatContainerRef.current.scrollTop = scrollDifference;
+        previousScrollHeightRef.current = 0;
+      }
     }
   }, [allMessages]);
 
   useEffect(() => {
-    if (inView) {
+    if (isInitialLoadRef.current) {
+      scrollToBottom();
+      isInitialLoadRef.current = false;
+      return;
+    }
+
+    if (isScrolledToBottom) {
+      scrollToBottom();
+    }
+  }, [messages, isScrolledToBottom]);
+
+  useEffect(() => {
+    if (inView && !isFetchingNextPage) {
+      if (chatContainerRef.current) {
+        previousScrollHeightRef.current = chatContainerRef.current.scrollHeight;
+      }
       fetchNextPage();
     }
-  }, [fetchNextPage, inView]);
+  }, [fetchNextPage, inView, isFetchingNextPage]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -132,6 +156,25 @@ export default function Chat({
       message: "",
     },
   });
+
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "instant",
+      });
+    }
+  };
+
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        chatContainerRef.current;
+      const tolerance = 10;
+      const isBottom = scrollHeight - scrollTop <= clientHeight + tolerance;
+      setIsScrolledToBottom(isBottom);
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -200,18 +243,18 @@ export default function Chat({
 
   return (
     <div className="flex flex-col h-full justify-between w-full">
-      <div className="overflow-y-auto border p-2 rounded flex flex-col gap-3 h-full">
+      <div
+        ref={chatContainerRef}
+        onScroll={handleScroll}
+        className="overflow-y-auto border p-2 rounded flex flex-col gap-3 h-full"
+      >
         {allMessages.length > 0 ? (
           <>
-            <div ref={ref} className="h-1">
-              {isFetchingNextPage && (
-                <div className="text-center text-sm text-muted-foreground py-2">
-                  Loading older messages...
-                </div>
-              )}
-            </div>
+            <div
+              ref={ref}
+              className={cn(isFetchingNextPage ? "hidden" : "visible")}
+            ></div>
 
-            {/* Messages */}
             {allMessages.map((message) => {
               const user = users.find((u) => u.id === message.senderId);
               return (
@@ -229,9 +272,6 @@ export default function Chat({
                 />
               );
             })}
-
-            {/* Scroll anchor at bottom */}
-            <div ref={bottomRef} />
           </>
         ) : (
           <Empty>
