@@ -2,21 +2,22 @@ import Chat from "@/components/meeting/chat";
 import { Navbar } from "@/components/navbar";
 import { EmptyRoom } from "@/components/room/empty-room";
 import { InviteUserDialog } from "@/components/room/invite-user-dialog";
+import { NotesContainer } from "@/components/room/notes/notes-container";
+import PlanMeetingCalendar from "@/components/room/plan-meetings-calendar";
+import PlannedMeetings from "@/components/room/planned-meetings";
 import { UsersDropdown } from "@/components/room/users-dropdown";
 import { StartMeetingButton } from "@/components/start-meeting-button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireAuth } from "@/lib/auth";
 import { ActiveMeeting, Class, Invitation } from "@/types/class";
 import { MeetingData } from "@/types/meeting";
 import { User } from "@/types/user";
-import { cookies } from "next/headers";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LibraryBig } from "lucide-react";
+import { cookies } from "next/headers";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
-import PlannedMeetings from "@/components/room/planned-meetings";
-import PlanMeetingCalendar from "@/components/room/plan-meetings-calendar";
 
 const getUsers = async (userIds: string[], token: string): Promise<User[]> => {
   const users = await Promise.all(
@@ -231,8 +232,8 @@ export default async function Page({
               </div>
             </TabsContent>
             <TabsContent value="notes">
-              <div className="flex-1 text-center min-h-15 bg-secondary w-full">
-                <h2>Notes Container</h2>
+              <div className="flex-1 min-h-15 bg w-full">
+                <NotesContainer roomId={slug} />
               </div>
             </TabsContent>
           </Tabs>

@@ -27,10 +27,6 @@ export function EndMeetingButton({
       });
 
       if (res.ok) {
-        toast("Meeting Ended!", {
-          description: `We will redirect you shortly!`,
-        });
-
         router.push(`/room/${classId}`);
       } else {
         const error = await res.json();

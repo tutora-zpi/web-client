@@ -112,6 +112,12 @@ export default function Notifications({ token }: { token: string }) {
         },
         duration: 5000,
       });
+    } else if (data.type === "system") {
+      toast.info(data.title, {
+        description: "We will redirect you shortly!",
+        duration: 5000,
+      });
+      router.push(data.redirectionLink);
     } else {
       toast.info(data.title, {
         description: data.body,
