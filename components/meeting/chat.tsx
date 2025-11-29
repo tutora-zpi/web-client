@@ -89,7 +89,11 @@ export default function Chat({
 
   const chatMessages = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages.flat().map((m) => ({ ...m }));
+    return data.pages.flat().map((m) => ({
+      ...m,
+      replyToMessageId: m.reply?.id,
+      replyToMessageContent: m.reply?.content,
+    }));
   }, [data]);
 
   const { messages, sendMessage, addReaction, replyToMessage } = useChat(
@@ -292,6 +296,7 @@ export default function Chat({
                   timestamp={message.sentAt}
                   onAddReaction={addReaction}
                   onReply={handleReply}
+                  replyToMessageContent={message.replyToMessageContent}
                 />
               );
             })}

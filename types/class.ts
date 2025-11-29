@@ -44,3 +44,14 @@ export interface ActiveMeeting {
   title: string;
   timestamp: number;
 }
+
+export interface NoteFile {
+  file_id: string;
+  created_at: Date;
+  file_type: FileType;
+}
+
+export enum FileType {
+  NOTES = "student_notes",
+  TEST = "teacher_tests",
+}
