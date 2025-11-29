@@ -1,6 +1,12 @@
 "use client";
 
-import { SmilePlus, UserRound, File, Reply } from "lucide-react";
+import {
+  File,
+  MessageSquareReply,
+  Reply,
+  SmilePlus,
+  UserRound,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,11 +16,11 @@ import {
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { EMOJI_OPTIONS, Reaction } from "@/types/meeting";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { format } from "date-fns";
 import Image from "next/image";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const isImageFile = (filename: string): boolean => {
   const imageExtensions = ["jpg", "jpeg", "png", "webp", "gif"];
@@ -41,6 +47,7 @@ export default function Message({
   timestamp,
   onAddReaction,
   onReply,
+  replyToMessageContent,
 }: {
   messageId: string;
   name?: string;
@@ -49,6 +56,7 @@ export default function Message({
   avatarUrl?: string;
   reactions?: Reaction[];
   fileLink?: string;
+  replyToMessageContent?: string;
   timestamp: number;
   onAddReaction: (emoji: string, messageId: string) => void;
   onReply: (messageId: string) => void;
@@ -67,6 +75,17 @@ export default function Message({
   }
   return (
     <div className="flex w-full max-w-lg flex-col">
+      {replyToMessageContent && (
+        <div className="flex flex-col rounded-md border-l-4 border-primary/40 bg-muted/50 px-3 py-2 text-xs">
+          <span className="flex  items-center gap-1 font-medium text-muted-foreground ">
+            <MessageSquareReply size={12} />
+            Answer to:
+          </span>
+          <span className="italic text-foreground/80">
+            {replyToMessageContent}
+          </span>
+        </div>
+      )}
       <Item variant="outline" className="relative">
         {Object.keys(groupedReactions).length > 0 && (
           <div className="absolute -top-2 -right-2 flex items-center p-1 rounded-md bg-secondary gap-1">
@@ -93,6 +112,7 @@ export default function Message({
           <ItemTitle>
             {name} {surname}
           </ItemTitle>
+
           <ItemDescription className="break-words">
             <span>{message}</span>
           </ItemDescription>

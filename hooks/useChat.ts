@@ -69,14 +69,23 @@ export function useChat(
 
         case WSChat.ReplyOnMessageWSEvent: {
           const d = msg.data;
-          const chatMessage: ChatMessage = {
-            id: d.messageId,
-            senderId: d.senderId,
-            sentAt: d.sentAt,
-            content: d.content,
-            fileLink: d.fileLink ? d.fileLink : undefined,
-          };
-          setMessages((prev) => [...prev, chatMessage]);
+          setMessages((prev) => {
+            const originalMessage = prev.find(
+              (m) => m.id === d.replyToMessageId
+            );
+
+            const chatMessage: ChatMessage = {
+              id: d.messageId,
+              senderId: d.senderId,
+              sentAt: d.sentAt,
+              content: d.content,
+              fileLink: d.fileLink ? d.fileLink : undefined,
+              replyToMessageId: d.replyToMessageId,
+              replyToMessageContent: originalMessage?.content,
+            };
+
+            return [...prev, chatMessage];
+          });
           break;
         }
         case WSChat.ReactOnMessageWSEvent: {
