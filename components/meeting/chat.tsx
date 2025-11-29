@@ -16,7 +16,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "../ui/empty";
-import { MessageCircleX, Paperclip, ArrowUp } from "lucide-react";
+import { MessageCircleX, Paperclip, ArrowUp, X } from "lucide-react";
 import Message from "./message";
 import { User } from "@/types/user";
 import { toast } from "sonner";
@@ -69,6 +69,7 @@ export default function Chat({
 }) {
   const isInitialLoadRef = useRef(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
@@ -91,7 +92,7 @@ export default function Chat({
     return data.pages.flat().map((m) => ({ ...m }));
   }, [data]);
 
-  const { messages, sendMessage, addReaction } = useChat(
+  const { messages, sendMessage, addReaction, replyToMessage } = useChat(
     userId ?? "",
     token,
     meetingId,
@@ -225,6 +226,17 @@ export default function Chat({
     }
   };
 
+  const handleReply = (messageId: string) => {
+    const message = allMessages.find((m) => m.id === messageId);
+    if (message) {
+      setReplyingTo(message);
+    }
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const messageText = values.message.trim();
 
@@ -232,13 +244,23 @@ export default function Chat({
       return;
     }
 
-    if (selectedFile) {
+    if (replyingTo) {
+      if (messageText) {
+        replyToMessage(replyingTo.id, messageText);
+      }
+      setReplyingTo(null);
+    } else if (selectedFile) {
       await uploadFile(messageText);
     } else if (messageText) {
       sendMessage(messageText);
     }
 
     form.reset();
+  };
+
+  const getReplyingToUser = () => {
+    if (!replyingTo) return null;
+    return users.find((u) => u.id === replyingTo.senderId);
   };
 
   return (
@@ -269,6 +291,7 @@ export default function Chat({
                   fileLink={message.fileLink}
                   timestamp={message.sentAt}
                   onAddReaction={addReaction}
+                  onReply={handleReply}
                 />
               );
             })}
@@ -293,6 +316,28 @@ export default function Chat({
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-2 mt-2 bg-secondary p-2 rounded-sm"
         >
+          {replyingTo && (
+            <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+              <div className="flex-1 text-sm">
+                <p className="font-medium">
+                  Replying to {getReplyingToUser()?.name}{" "}
+                  {getReplyingToUser()?.surname}
+                </p>
+                <p className="text-muted-foreground truncate">
+                  {replyingTo.content}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={cancelReply}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
           <FormField
             control={form.control}
             name="message"
@@ -300,7 +345,9 @@ export default function Chat({
               <FormItem>
                 <FormControl>
                   <Input
-                    placeholder="Type a message..."
+                    placeholder={
+                      replyingTo ? "Type your reply..." : "Type a message..."
+                    }
                     {...field}
                     className="border-none focus-visible:ring-0"
                     autoFocus
@@ -323,6 +370,7 @@ export default function Chat({
                 size="sm"
                 variant={selectedFile ? "default" : "outline"}
                 onClick={() => fileInputRef.current?.click()}
+                disabled={!!replyingTo}
               >
                 <Paperclip className="h-4 w-4" />
                 {selectedFile && (

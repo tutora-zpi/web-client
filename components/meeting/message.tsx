@@ -1,6 +1,6 @@
 "use client";
 
-import { SmilePlus, UserRound, File } from "lucide-react";
+import { SmilePlus, UserRound, File, Reply } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +40,7 @@ export default function Message({
   fileLink,
   timestamp,
   onAddReaction,
+  onReply,
 }: {
   messageId: string;
   name?: string;
@@ -50,6 +51,7 @@ export default function Message({
   fileLink?: string;
   timestamp: number;
   onAddReaction: (emoji: string, messageId: string) => void;
+  onReply: (messageId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -57,7 +59,6 @@ export default function Message({
     onAddReaction(emoji, messageId);
     setOpen(false);
   };
-
   const groupedReactions: Record<string, number> = {};
   if (reactions && reactions.length > 0) {
     for (const r of reactions) {
@@ -172,6 +173,14 @@ export default function Message({
               </div>
             </PopoverContent>
           </Popover>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onReply(messageId)}
+          >
+            <Reply />
+          </Button>
         </ItemActions>
       </Item>
     </div>

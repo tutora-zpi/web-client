@@ -10,6 +10,7 @@ export function useChat(
   initialMessages: ChatMessage[]
 ) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const hasJoinedRef = useRef(false);
 
@@ -54,6 +55,19 @@ export function useChat(
       switch (msg.name) {
         case WSChat.SendMessageWSEvent:
         case WSChat.SendFileMessageEvent: {
+          const d = msg.data;
+          const chatMessage: ChatMessage = {
+            id: d.messageId,
+            senderId: d.senderId,
+            sentAt: d.sentAt,
+            content: d.content,
+            fileLink: d.fileLink ? d.fileLink : undefined,
+          };
+          setMessages((prev) => [...prev, chatMessage]);
+          break;
+        }
+
+        case WSChat.ReplyOnMessageWSEvent: {
           const d = msg.data;
           const chatMessage: ChatMessage = {
             id: d.messageId,
@@ -114,6 +128,21 @@ export function useChat(
     );
   };
 
+  const replyToMessage = (messageId: string, content: string) => {
+    wsRef.current?.send(
+      JSON.stringify({
+        name: WSChat.ReplyOnMessageWSEvent,
+        data: {
+          replyToMessageId: messageId,
+          content: content,
+          senderId: userId,
+          chatId: meetingID,
+          sentAt: Math.floor(Date.now() / 1000),
+        },
+      })
+    );
+  };
+
   const addReaction = (emoji: string, messageId: string) => {
     const msg = messages.find((m) => m.id === messageId);
     if (!msg) return;
@@ -126,5 +155,12 @@ export function useChat(
     );
   };
 
-  return { messages, sendMessage, addReaction };
+  return {
+    messages,
+    sendMessage,
+    addReaction,
+    replyToMessage,
+    replyingTo,
+    setReplyingTo,
+  };
 }
