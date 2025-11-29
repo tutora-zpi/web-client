@@ -117,7 +117,6 @@ const getActiveMeetings = async (
     const meetings = meetingsData.data.filter((meeting: MeetingData) => {
       const finishDate = new Date(meeting.finishDate);
       const newDateToIsoString = new Date().toISOString();
-      console.log(newDateToIsoString);
       return finishDate > new Date(newDateToIsoString);
     });
 
