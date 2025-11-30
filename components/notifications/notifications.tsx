@@ -112,7 +112,7 @@ export default function Notifications({ token }: { token: string }) {
         },
         duration: 5000,
       });
-    } else if (data.type === "system") {
+    } else if (data.redirectionLink.includes("room")) {
       toast.info(data.title, {
         description: "We will redirect you shortly!",
         duration: 5000,
