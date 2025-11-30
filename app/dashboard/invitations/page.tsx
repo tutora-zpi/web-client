@@ -1,9 +1,20 @@
 import { InvitationCard } from "@/components/dashboard/invitations/invitation-card";
 import { Navbar } from "@/components/navbar";
+import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Class, Invitation, InvitationWithDetails } from "@/types/class";
 import { User } from "@/types/user";
+import { MessageCircleX, RefreshCcwIcon } from "lucide-react";
 
 import { cookies } from "next/headers";
+import Link from "next/link";
 
 const getInvitations = async (token: string): Promise<Invitation[]> => {
   const response = await fetch(
@@ -80,6 +91,34 @@ const getInvitationsWithDetails = async (): Promise<
 
 export default async function Dashboard() {
   const invitations = await getInvitationsWithDetails();
+
+  if (!invitations.length) {
+    return (
+      <>
+        <Navbar />
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <MessageCircleX />
+            </EmptyMedia>
+            <EmptyTitle>No Invitations Yet</EmptyTitle>
+            <EmptyDescription>
+              You&apos;re all caught up. New invitations will appear here.
+            </EmptyDescription>
+          </EmptyHeader>
+
+          <EmptyContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href="">
+                <RefreshCcwIcon />
+                Refresh
+              </Link>
+            </Button>
+          </EmptyContent>
+        </Empty>
+      </>
+    );
+  }
 
   return (
     <>
