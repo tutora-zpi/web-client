@@ -173,20 +173,19 @@ export default async function Page({
             )}
 
             {activeMeeting && (
-              <Button asChild variant="outline" className="relative ">
-                <div>
-                  <Link
-                    href={`/room/${slug}/meeting/${activeMeeting.meetingId}`}
-                  >
-                    Join
-                  </Link>
+              <Button asChild variant="outline" className="relative">
+                <Link
+                  href={`/room/${slug}/meeting/${activeMeeting.meetingId}`}
+                  className=""
+                >
+                  Join
                   <Badge
                     variant="default"
                     className="absolute -top-2 -right-2 min-w-5 h-5 flex items-center justify-center p-1 rounded-full"
                   >
                     Live
                   </Badge>
-                </div>
+                </Link>
               </Button>
             )}
             <InviteUserDialog
