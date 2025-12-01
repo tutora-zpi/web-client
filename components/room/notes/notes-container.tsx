@@ -1,7 +1,11 @@
-import { FileType, NoteFile } from "@/types/class";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Item,
   ItemActions,
@@ -11,10 +15,13 @@ import {
   ItemSeparator,
   ItemTitle,
 } from "@/components/ui/item";
-import { Eye, FlaskConical, NotebookTabs } from "lucide-react";
-import React from "react";
-import { Button } from "@/components/ui/button";
+import { FileType, NoteFile } from "@/types/class";
+import { format } from "date-fns";
+import { BookX, Eye, FlaskConical, NotebookTabs } from "lucide-react";
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import React from "react";
 
 const getFiles = async (token: string, roomId: string): Promise<NoteFile[]> => {
   try {
@@ -51,7 +58,17 @@ export const NotesContainer = async ({ roomId }: { roomId: string }) => {
 
   if (files.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">Brak notatek</div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <BookX />
+          </EmptyMedia>
+          <EmptyTitle>No Notes Yet</EmptyTitle>
+          <EmptyDescription>
+            Start recording your meetings to generate AI materials.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
