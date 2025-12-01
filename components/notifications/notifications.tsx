@@ -17,7 +17,7 @@ import { Bell } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Notification } from "@/types/notification";
 import { NotificationItem } from "./notification-item";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   useInfiniteQuery,
   useMutation,
@@ -69,6 +69,7 @@ export default function Notifications({ token }: { token: string }) {
   const queryClient = useQueryClient();
 
   const router = useRouter();
+  const pathName = usePathname();
 
   const { data, status, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["notifications"],
@@ -117,7 +118,8 @@ export default function Notifications({ token }: { token: string }) {
         description: "We will redirect you shortly!",
         duration: 5000,
       });
-      router.push(data.redirectionLink);
+
+      if (pathName.includes("meeting")) router.push(data.redirectionLink);
     } else {
       toast.info(data.title, {
         description: data.body,
