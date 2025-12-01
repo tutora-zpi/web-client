@@ -197,6 +197,7 @@ export default function Message({
           <Button
             variant="outline"
             size="icon"
+            disabled={!!fileLink}
             onClick={() => onReply(messageId)}
           >
             <Reply />
