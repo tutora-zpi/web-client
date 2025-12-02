@@ -354,7 +354,7 @@ export default function Chat({
                       replyingTo ? "Type your reply..." : "Type a message..."
                     }
                     {...field}
-                    className="border-none focus-visible:ring-0"
+                    className="border-none focus-visible:ring-0 shadow-none"
                     autoFocus
                   />
                 </FormControl>
