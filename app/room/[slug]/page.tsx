@@ -144,16 +144,19 @@ export default async function Page({
 
   const data = await getClass(slug, token);
 
-  const users = await getUsers(
-    data.members.map((member) => member.userId),
-    token
-  );
+  const memberIds = data.members.map((member) => member.userId);
+
+  const users = await getUsers(memberIds, token);
 
   const invitations = await getClassInvitations(slug, token);
+
+  const invitedUsersIds = invitations.map((inv) => inv.userId);
 
   const activeMeeting = await getActiveMeeting(slug, token);
 
   const meetings = await getActiveMeetings(slug, token);
+
+  const userIds = [...new Set([...memberIds, ...invitedUsersIds])];
 
   return (
     <>
@@ -188,11 +191,7 @@ export default async function Page({
                 </Link>
               </Button>
             )}
-            <InviteUserDialog
-              classId={slug}
-              host={host}
-              userIds={invitations.map((invitation) => invitation.userId)}
-            />
+            <InviteUserDialog classId={slug} host={host} userIds={userIds} />
             <UsersDropdown users={users} />
           </div>
         </div>
