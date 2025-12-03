@@ -7,7 +7,13 @@ import { Input } from "../ui/input";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Empty,
@@ -25,7 +31,9 @@ import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
-  message: z.string(),
+  message: z.string().max(50, {
+    message: "Your message is too long (max 50 characters)",
+  }),
 });
 
 const MESSAGES_LIMIT = 10;
@@ -358,6 +366,7 @@ export default function Chat({
                     autoFocus
                   />
                 </FormControl>
+                <FormMessage className="ml-3" />
               </FormItem>
             )}
           />
