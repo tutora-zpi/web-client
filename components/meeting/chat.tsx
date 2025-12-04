@@ -378,6 +378,7 @@ export default function Chat({
                 type="file"
                 className="hidden"
                 onChange={handleFileSelect}
+                accept="image/*,text/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.oasis.opendocument.text,application/vnd.oasis.opendocument.spreadsheet,application/vnd.oasis.opendocument.presentation"
               />
               <Button
                 type="button"

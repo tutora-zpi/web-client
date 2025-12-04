@@ -72,44 +72,81 @@ export const NotesContainer = async ({ roomId }: { roomId: string }) => {
     );
   }
 
+  const summaries = files.filter((file) => file.file_type === FileType.NOTES);
+  const tests = files.filter((file) => file.file_type === FileType.TEST);
+
   return (
-    <ItemGroup className="gap-2">
-      {files.map((file, index) => (
-        <React.Fragment key={file.file_id + file.file_type}>
-          <Item>
-            <ItemContent>
-              <ItemTitle>
-                {file.file_type === FileType.NOTES ? (
-                  <span className="flex items-center gap-2 font-bold text-lg">
-                    <NotebookTabs /> Notes
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2 text-lg">
-                    <FlaskConical /> Test
-                  </span>
-                )}
-              </ItemTitle>
-              <ItemDescription>
-                {format(new Date(file.created_at), "dd.MM.yyyy HH:mm")}
-              </ItemDescription>
-            </ItemContent>
-            <ItemActions>
-              <Button asChild variant="outline">
-                <Link
-                  href={
-                    file.file_type === FileType.NOTES
-                      ? `${roomId}/note/${file.file_id}`
-                      : `${roomId}/test/${file.file_id}`
-                  }
-                >
-                  <Eye /> Read
-                </Link>
-              </Button>
-            </ItemActions>
-          </Item>
-          {index !== files.length - 1 && <ItemSeparator />}
-        </React.Fragment>
-      ))}
-    </ItemGroup>
+    <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex-1">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          Summaries
+        </h2>
+        {summaries.length === 0 ? (
+          <p className="text-muted-foreground">No summaries available</p>
+        ) : (
+          <ItemGroup className="gap-2">
+            {summaries.map((file, index) => (
+              <React.Fragment key={file.file_id}>
+                <Item>
+                  <ItemContent>
+                    <ItemTitle>
+                      {" "}
+                      <NotebookTabs /> Summary
+                    </ItemTitle>
+                    <ItemDescription>
+                      {format(new Date(file.created_at), "dd.MM.yyyy")}
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Button asChild variant="outline">
+                      <Link href={`${roomId}/note/${file.file_id}`}>
+                        <Eye /> Read
+                      </Link>
+                    </Button>
+                  </ItemActions>
+                </Item>
+                {index !== summaries.length - 1 && <ItemSeparator />}
+              </React.Fragment>
+            ))}
+          </ItemGroup>
+        )}
+      </div>
+
+      <div className="flex-1">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          Tests
+        </h2>
+        {tests.length === 0 ? (
+          <p className="text-muted-foreground">No tests available</p>
+        ) : (
+          <ItemGroup className="gap-2">
+            {tests.map((file, index) => (
+              <React.Fragment key={file.file_id}>
+                <Item>
+                  <ItemContent>
+                    <ItemTitle>
+                      {" "}
+                      <FlaskConical />
+                      Test
+                    </ItemTitle>
+                    <ItemDescription>
+                      {format(new Date(file.created_at), "dd.MM.yyyy")}
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Button asChild variant="outline">
+                      <Link href={`${roomId}/test/${file.file_id}`}>
+                        <Eye /> Read
+                      </Link>
+                    </Button>
+                  </ItemActions>
+                </Item>
+                {index !== tests.length - 1 && <ItemSeparator />}
+              </React.Fragment>
+            ))}
+          </ItemGroup>
+        )}
+      </div>
+    </div>
   );
 };
