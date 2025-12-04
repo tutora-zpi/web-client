@@ -209,7 +209,6 @@ export default function Chat({
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("content", message);
-    formData.append("senderId", userId);
     formData.append("chatId", meetingId);
     formData.append("sentAt", Math.floor(Date.now() / 1000).toString());
 
@@ -301,6 +300,7 @@ export default function Chat({
                   messageId={message.id}
                   reactions={message.reactions}
                   fileLink={message.fileLink}
+                  fileName={message.fileName}
                   timestamp={message.sentAt}
                   onAddReaction={addReaction}
                   onReply={handleReply}
