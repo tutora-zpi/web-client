@@ -61,7 +61,8 @@ export function useChat(
             senderId: d.senderId,
             sentAt: d.sentAt,
             content: d.content,
-            fileLink: d.fileLink ? d.fileLink : undefined,
+            fileLink: d.fileLink ?? undefined,
+            fileName: d.fileName ?? undefined,
           };
           setMessages((prev) => [...prev, chatMessage]);
           break;
@@ -95,14 +96,14 @@ export function useChat(
               m.id !== reaction.messageId
                 ? m
                 : {
-                    ...m,
-                    reactions: [
-                      ...(m.reactions?.filter(
-                        (r) => r.userId !== reaction.userId
-                      ) ?? []),
-                      reaction,
-                    ],
-                  }
+                  ...m,
+                  reactions: [
+                    ...(m.reactions?.filter(
+                      (r) => r.userId !== reaction.userId
+                    ) ?? []),
+                    reaction,
+                  ],
+                }
             )
           );
           break;

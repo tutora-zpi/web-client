@@ -44,6 +44,7 @@ export default function Message({
   avatarUrl,
   reactions,
   fileLink,
+  fileName,
   timestamp,
   onAddReaction,
   onReply,
@@ -56,6 +57,7 @@ export default function Message({
   avatarUrl?: string;
   reactions?: Reaction[];
   fileLink?: string;
+  fileName?: string;
   replyToMessageContent?: string;
   timestamp: number;
   onAddReaction: (emoji: string, messageId: string) => void;
@@ -163,7 +165,7 @@ export default function Message({
                     href={`${process.env.NEXT_PUBLIC_CHAT_SERVICE}${fileLink}`}
                   >
                     <File />
-                    <span className="truncate">{fileLink.slice(14)}</span>
+                    <span className="truncate">{fileName}</span>
                   </a>
                 </Button>
               )}
