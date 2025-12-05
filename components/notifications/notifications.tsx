@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { toast } from "sonner";
+import { Action, toast } from "sonner";
 import {
   Sheet,
   SheetClose,
@@ -101,35 +101,35 @@ export default function Notifications({ token }: { token: string }) {
     }
   }, [fetchNextPage, inView]);
 
-  const handleNotification = (event: MessageEvent) => {
-    const data = JSON.parse(event.data);
 
-    if (data.redirectionLink.includes("meeting")) {
-      toast.info(data.title, {
-        description: data.body,
-        action: {
-          label: "Join",
-          onClick: () => router.push(data.redirectionLink),
-        },
-        duration: 5000,
-      });
-    } else if (data.redirectionLink.includes("room")) {
-      toast.info(data.title, {
-        description: "We will redirect you shortly!",
-        duration: 5000,
-      });
-
-      if (pathName.includes("meeting")) router.push(data.redirectionLink);
+  const matchLabelToLink = (link: string) => {
+    if (link.includes("meeting")) {
+      return "Join"
     } else {
-      toast.info(data.title, {
-        description: data.body,
-        action: {
-          label: "View",
-          onClick: () => router.push(`/dashboard/invitations`),
-        },
-        duration: 5000,
-      });
+      return "View"
     }
+  }
+
+  const handleNotification = (event: MessageEvent) => {
+    const data = JSON.parse(event.data) as Notification;
+
+    const autoRedirect = data.metadata["autoRedirect"] as boolean;
+
+    if (autoRedirect) {
+      router.push(data.redirectionLink)
+    }
+
+    const action: Action = {
+      label: matchLabelToLink(data.redirectionLink),
+      onClick: () => router.push(data.redirectionLink)
+    }
+
+    toast.info(data.title, {
+      description: data.body,
+      action: !autoRedirect ? action : null,
+      duration: 5000,
+    })
+
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
   };
 
