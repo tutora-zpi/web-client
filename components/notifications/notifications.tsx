@@ -17,7 +17,7 @@ import { Bell } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Notification } from "@/types/notification";
 import { NotificationItem } from "./notification-item";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   useInfiniteQuery,
   useMutation,
@@ -69,7 +69,6 @@ export default function Notifications({ token }: { token: string }) {
   const queryClient = useQueryClient();
 
   const router = useRouter();
-  const pathName = usePathname();
 
   const { data, status, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["notifications"],
@@ -101,34 +100,33 @@ export default function Notifications({ token }: { token: string }) {
     }
   }, [fetchNextPage, inView]);
 
-
   const matchLabelToLink = (link: string) => {
     if (link.includes("meeting")) {
-      return "Join"
+      return "Join";
     } else {
-      return "View"
+      return "View";
     }
-  }
+  };
 
   const handleNotification = (event: MessageEvent) => {
-    const data = JSON.parse(event.data) as Notification;
+    const data = JSON.parse(event.data) satisfies Notification;
 
-    const autoRedirect = data.metadata["autoRedirect"] as boolean;
+    const autoRedirect = data.metadata["autoRedirect"] satisfies boolean;
 
     if (autoRedirect) {
-      router.push(data.redirectionLink)
+      router.push(data.redirectionLink);
     }
 
     const action: Action = {
       label: matchLabelToLink(data.redirectionLink),
-      onClick: () => router.push(data.redirectionLink)
-    }
+      onClick: () => router.push(data.redirectionLink),
+    };
 
     toast.info(data.title, {
       description: data.body,
       action: !autoRedirect ? action : null,
       duration: 5000,
-    })
+    });
 
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
   };
