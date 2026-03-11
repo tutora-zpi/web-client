@@ -38,7 +38,7 @@ A web application developed as part of an engineering thesis project at the Wroc
 ### Prerequisites
 
 - **Node.js** ≥ 18
-- **npm** (or yarn / pnpm / bun)
+- **npm**
 
 ### 1. Clone the repository
 
